@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0.0",
+	"FriendlyName": "Minesweeper",
+	"Description": "Minesweeper for the Unreal Engine editor!",
+	"Category": "Editor Games",
+	"CreatedBy": "Brad Monahan",
+	"CreatedByURL": "http://www.nervenet.net",
+	"SupportURL": "mailto:brad@nervenet.net",
+	"IsBetaVersion": false,
+	"CanContainContent": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "MinesweeperEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	],
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"IsExperimentalVersion": false
+}

@@ -1,0 +1,26 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.0",
+	"Category": "",
+	"Description": "GeoTech Trail Task: Minesweeper",
+	"Modules": [
+		{
+			"Name": "GeoTech_TrialTask",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "ModelingToolsEditorMode",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+        {
+            "Name": "Minesweeper",
+            "Enabled": true
+        }
+	]
+}
