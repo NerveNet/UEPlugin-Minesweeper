@@ -159,6 +159,18 @@ FReply SMinesweeperCell::OnMouseButtonDown(const FGeometry& InGeometry, const FP
 }
 
 
+void SMinesweeperCell::Reset()
+{
+	IsOpened = false;
+	IsFlagged = false;
+	HasMine = false;
+	ShowMine = false;
+
+	NeighborMineCount = -1;
+	CanPlaceFlag = true;
+}
+
+
 
 
 #undef LOCTEXT_NAMESPACE

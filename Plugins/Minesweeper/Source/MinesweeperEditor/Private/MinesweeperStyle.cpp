@@ -121,6 +121,9 @@ TSharedRef<FSlateStyleSet> FMinesweeperStyle::Create()
 	Style->Set("Color.SevenNeighborText", FLinearColor(0.0f, 0.0f, 0.25f));
 	Style->Set("Color.EightNeighborText", FLinearColor(0.0f, 0.25f, 0.0f));
 
+	Style->Set("Color.Win", FLinearColor(0.0f, 1.0f, 0.0f));
+	Style->Set("Color.Lose", FLinearColor(1.0f, 0.0f, 0.0f));
+
 	#pragma endregion
 
 
@@ -128,9 +131,14 @@ TSharedRef<FSlateStyleSet> FMinesweeperStyle::Create()
 
 	FSlateFontInfo RobotoFont = FSlateFontInfo(EngineSlateFontsDirectory / TEXT("Roboto-Regular.ttf"), 10);
 	FSlateFontInfo RobotoBoldFont = FSlateFontInfo(EngineSlateFontsDirectory / TEXT("Roboto-Bold.ttf"), 10);
-	
+
 	Style->Set("Font.Roboto", RobotoFont);
 	Style->Set("Font.Roboto.Bold", RobotoBoldFont);
+
+	FSlateFontInfo RobotoFontWithOutline = FSlateFontInfo(EngineSlateFontsDirectory / TEXT("Roboto-Bold.ttf"), 10);
+	RobotoFontWithOutline.OutlineSettings.OutlineColor = FLinearColor::Black;
+	RobotoFontWithOutline.OutlineSettings.OutlineSize = 1.0f;
+	Style->Set("Font.Roboto.BlackOutline", RobotoFontWithOutline);
 
 	#pragma endregion
 
@@ -184,7 +192,7 @@ TSharedRef<FSlateStyleSet> FMinesweeperStyle::Create()
 		.SetColorAndOpacity(TitleColor)
 		.SetFontSize(20)
 		.SetShadowColorAndOpacity(FLinearColor::Black)
-		.SetShadowOffset(FVector2D(1.0f));
+		.SetShadowOffset(FVector2D(1.5f));
 	Style->Set("Text.HeaderLarge", HeaderLargeTextStyle);
 
 	FTextBlockStyle MineCountTextStyle = FTextBlockStyle(EngineNormalText)
@@ -194,12 +202,18 @@ TSharedRef<FSlateStyleSet> FMinesweeperStyle::Create()
 		.SetShadowColorAndOpacity(FLinearColor::Black)
 		.SetShadowOffset(FVector2D(1.0f));
 	Style->Set("Text.MineCount", MineCountTextStyle);
+
+	FTextBlockStyle WinLoseTextStyle = FTextBlockStyle(NormalTextStyle)
+		.SetFont(RobotoFontWithOutline)
+		.SetFontSize(18)
+		.SetShadowOffset(FVector2D(0.0f, 0.0f));
+	Style->Set("Text.WinLose", WinLoseTextStyle);
 	
 
 	FTextBlockStyle HighScoreListHeaderTextStyle = NormalTextStyle
 		.SetFontSize(10)
 		.SetColorAndOpacity(FLinearColor::Black)
-		.SetShadowColorAndOpacity(FLinearColor::White)
+		.SetShadowColorAndOpacity(FLinearColor(1.0f, 1.0f, 1.0f, 0.2f))
 		.SetShadowOffset(FVector2D(1.0f))
 		.SetFont(RobotoBoldFont);
 	Style->Set("HighScoreList.Text.Header", HighScoreListHeaderTextStyle);
@@ -288,12 +302,15 @@ TSharedRef<FSlateStyleSet> FMinesweeperStyle::Create()
 	Style->Set("MrSmile.Alive", new IMAGE_BRUSH("MrSmile_Alive_64x", Icon64x64));
 	Style->Set("MrSmile.Dead", new IMAGE_BRUSH("MrSmile_Dead_64x", Icon64x64));
 
-	Style->Set("ToggleWindowMode", new IMAGE_BRUSH("ToggleWindowMode_32x", Icon32x32));
+	Style->Set("ToggleWindowMode", new IMAGE_BRUSH("ToggleWindowMode_32x", Icon20x20));
 
 
 	FLinearColor HighScoreListHeaderBackgroundColor = FStyleColors::AccentWhite.GetSpecifiedColor();
-	HighScoreListHeaderBackgroundColor.A = 0.55f;
+	HighScoreListHeaderBackgroundColor.A = 0.4f;
 	Style->Set("HighScoreList.Header", new FSlateRoundedBoxBrush(HighScoreListHeaderBackgroundColor, 4.0f));
+
+	Style->Set("Border.Win", new FSlateRoundedBoxBrush(FLinearColor(0, 0, 0, 0), 2.0f, FLinearColor(0, 1, 0, 1), 1.0f));
+	Style->Set("Border.Lose", new FSlateRoundedBoxBrush(FLinearColor(0, 0, 0, 0), 2.0f, FLinearColor(1, 0, 0, 1), 1.0f));
 
 	#pragma endregion
 

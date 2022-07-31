@@ -8,6 +8,7 @@
 
 class SWidgetSwitcher;
 class SEditableTextBox;
+class SVerticalBox;
 class SUniformGridPanel;
 class SMinesweeperCell;
 struct FMinesweeperDifficulty;
@@ -20,7 +21,7 @@ struct FMinesweeperDifficulty;
  * 
  * TODO:
  * - implement algo to eliminate the chance of a player having to guess
- * 
+ * - fix switch window mode button stops working after SDockTab window is docked
  */
 class MINESWEEPEREDITOR_API SMinesweeper : public SCompoundWidget
 {
@@ -38,21 +39,15 @@ public:
 	static const FMinesweeperDifficulty DefaultDifficulty;
 
 	static const int32 MinGridSize = 2;
-	static const int32 MaxGridSize = 48;
+	static const int32 MaxGridSize = 30;
 
 	static const int32 MinMineCount = 1;
-	int32 MaxMineCount = 576;
+	int32 MaxMineCount = 225;
 
 	static const int32 MaxScore = 1000000;
 
 
 private:
-	//friend class SMinesweeperCell;
-
-	/** Holds the singleton instance of this class so all cells can acess without needing each cell to hold the data. */
-	//static TSharedPtr<SMinesweeper> Instance;
-
-
 	UMinesweeperSettings* Settings = nullptr;
 
 	TSharedPtr<FActiveTimerHandle> ActiveTimerHandle;
@@ -71,6 +66,8 @@ private:
 	int32 NumClosedCells = 0;
 	int32 NumOpenedCells = 0;
 
+
+	/** Holds the last achieved high score ranking. */
 	int8 LastHighScoreRank = -1;
 
 
@@ -78,22 +75,29 @@ private:
 	int32 ActiveGameSetupPanel = 0;
 
 	TSharedPtr<SEditableTextBox> NameTextBox;
+	TSharedPtr<SVerticalBox> HighScoresList;
 	TSharedPtr<SUniformGridPanel> GridPanel;
 
+	/** Indexed lookup map for quick grid cell widget access. */
 	TMap<int32, TSharedRef<SMinesweeperCell>> CellMap;
+
+
+	/** Refreshes the high scores list widget. */
+	void RefreshHighScores();
 
 
 	EActiveTimerReturnType UpdateGameTick(double InCurrentTime, float InDeltaTime);
 
 
-	void HandleNameChanged(const FText& NewText);
-	void HandleNameCommitted(const FText& NewText, ETextCommit::Type InTextCommit);
+	void OnPlayerNameChanged(const FText& NewText);
+	void OnPlayerNameCommitted(const FText& NewText, ETextCommit::Type InTextCommit);
 
 
 	FReply OnDifficultyClick(const int32 InDifficultyLevel);
 	FReply OnStartNewGameClick();
 	FReply OnContinueGameClick();
 	FReply OnNewGameClick();
+	FReply OnRestartGameClick();
 	FReply OnSwitchWindowModeClick();
 	FReply OnGotoNewGamePanel();
 
@@ -113,6 +117,8 @@ private:
 
 	#pragma region Grid / Cell Functions
 
+	inline bool HasWon() const { return NumClosedCells == CurrentSettings.MineCount; }
+
 	inline int32 TotalCellCount() const { return CurrentSettings.Width * CurrentSettings.Height; }
 
 	bool IsValidGridIndex(const int32 InCellIndex) const;
@@ -125,6 +131,8 @@ private:
 
 	void OpenCell(TSharedPtr<SMinesweeperCell> InCellWidget);
 	void OpenNeighbors(TSharedPtr<SMinesweeperCell> InCellWidget);
+
+	void ForEachCell(TFunctionRef<void(TSharedPtr<SMinesweeperCell>)> InFunc);
 
 	#pragma endregion
 

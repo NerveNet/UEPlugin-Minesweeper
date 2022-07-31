@@ -18,9 +18,9 @@
 				"Editor"
 			]
 		},
-        {
-            "Name": "Minesweeper",
-            "Enabled": true
-        }
+		{
+			"Name": "Minesweeper",
+			"Enabled": true
+		}
 	]
 }

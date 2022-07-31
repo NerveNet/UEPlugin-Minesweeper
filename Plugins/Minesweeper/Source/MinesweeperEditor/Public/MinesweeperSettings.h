@@ -31,13 +31,19 @@ struct MINESWEEPEREDITOR_API FMinesweeperDifficulty
 	FMinesweeperDifficulty(const int32 InWidth, const int32 InHeight, const int32 InMineCount)
 		: Width(InWidth), Height(InHeight), MineCount(InMineCount) { }
 
-	bool operator ==(const FMinesweeperDifficulty& InOther) const
+	bool operator == (const FMinesweeperDifficulty& InOther) const
 	{
 		return (Width == InOther.Width && Height == InOther.Height && MineCount == InOther.MineCount);
 	}
-	bool operator !=(const FMinesweeperDifficulty& InOther) const
+	bool operator != (const FMinesweeperDifficulty& InOther) const
 	{
 		return !(*this == InOther);
+	}
+	void operator = (const FMinesweeperDifficulty& InOther)
+	{
+		Width = InOther.Width;
+		Height = InOther.Height;
+		MineCount = InOther.MineCount;
 	}
 
 	int32 TotalCells() const { return Width * Height; }
@@ -89,7 +95,7 @@ struct MINESWEEPEREDITOR_API FMinesweeperHighScore
 /**
  * Developer settings class for the Minesweeper plugin.
  */
-UCLASS(Config = "Minesweeper")
+UCLASS(Config="Minesweeper", DefaultConfig)
 class MINESWEEPEREDITOR_API UMinesweeperSettings : public UDeveloperSettings
 {
 	GENERATED_UCLASS_BODY()
@@ -126,14 +132,25 @@ public:
 
 	/// ************************************************** SETTINGS **************************************************
 	///
-	/** True if using dock tab window mode. False if using standalone window mode. */
-	UPROPERTY(Config) bool UseDockTab;
+	UPROPERTY(Config, EditAnywhere, Category = "General", Meta = (ConfigRestartRequired = true, 
+			DisplayName = "Show Toolbar Button",
+			Tooltip = "Show the Minesweeper toolbar button."))
+		bool ShowToolbarButton;
 
-	/** The current saved name that was last entered for the game. */
-	UPROPERTY(Config) FString LastPlayerName;
+	UPROPERTY(Config, EditAnywhere, Category = "General", Meta = (
+			DisplayName = "Use Docking Tab",
+			Tooltip = "Switch between standalone and docking tab window modes."))
+		bool UseDockTab;
 
-	/** The current saved settings that were last entered for the game. */
-	FMinesweeperDifficulty LastSettings;
+	UPROPERTY(Config, EditAnywhere, Category = "General", Meta = (
+			DisplayName = "Player Name",
+			Tooltip = "The current saved name that was last entered for the game."))
+		FString LastPlayerName;
+
+	UPROPERTY(Config, EditAnywhere, Category = "General", Meta = (
+			DisplayName = "Difficulty Settings",
+			Tooltip = "The current saved settings that were last entered for the game."))
+		FMinesweeperDifficulty LastSettings;
 
 	/** List of the last ten high scores. */
 	UPROPERTY(Config) TArray<FMinesweeperHighScore> HighScores;

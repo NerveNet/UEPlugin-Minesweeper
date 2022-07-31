@@ -52,12 +52,18 @@ void UMinesweeperSettings::PostEditChangeProperty(FPropertyChangedEvent& Propert
 	) {
 
 	}
+
+	OnSettingsChanged.Broadcast(PropertyChangedEvent);
+
+	SaveConfig();
 }
 #endif
 
 
 void UMinesweeperSettings::ResetToDefaults()
 {
+	ShowToolbarButton = true;
+
 	UseDockTab = false;
 
 	LastPlayerName = "Some_Randy";

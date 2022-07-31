@@ -34,9 +34,12 @@ void FMinesweeperEditorModule::StartupModule()
 	
 	
 	// add toolbar extension
-	ToolbarButtonExtender = MakeShareable(new FExtender);
-	ToolbarButtonExtension = ToolbarButtonExtender->AddToolBarExtension("Content", EExtensionHook::After, CommandList, FToolBarExtensionDelegate::CreateRaw(this, &FMinesweeperEditorModule::BuildToolbarButton));
-	LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(ToolbarButtonExtender);
+	if (UMinesweeperSettings::GetConst()->ShowToolbarButton)
+	{
+		ToolbarButtonExtender = MakeShareable(new FExtender);
+		ToolbarButtonExtension = ToolbarButtonExtender->AddToolBarExtension("Content", EExtensionHook::After, CommandList, FToolBarExtensionDelegate::CreateRaw(this, &FMinesweeperEditorModule::BuildToolbarButton));
+		LevelEditorModule.GetToolBarExtensibilityManager()->AddExtender(ToolbarButtonExtender);
+	}
 	
 
     // add menu item to display "Minesweeper" under the "Windows" menu
@@ -48,7 +51,7 @@ void FMinesweeperEditorModule::StartupModule()
     // register tab spawner
     FGlobalTabmanager::Get()->RegisterNomadTabSpawner(
 		GetMinesweeperDockTabName(),
-        FOnSpawnTab::CreateLambda([this](const FSpawnTabArgs&) -> TSharedRef<SDockTab> { return CreateGenericDockTabForGame(); }))
+        FOnSpawnTab::CreateLambda([&](const FSpawnTabArgs&) -> TSharedRef<SDockTab> { return CreateGenericDockTabForGame(); }))
         .SetMenuType(ETabSpawnerMenuType::Hidden)
         .SetDisplayName(GetMinesweeperLabel())
         .SetIcon(FMinesweeperStyle::GetIcon("Mine"));
@@ -68,11 +71,14 @@ void FMinesweeperEditorModule::ShutdownModule()
 		
 		
 	// remove toolbar extension
-	ToolbarButtonExtender->RemoveExtension(ToolbarButtonExtension.ToSharedRef());
-	LevelEditorModule.GetToolBarExtensibilityManager()->RemoveExtender(ToolbarButtonExtender);
-	
-	ToolbarButtonExtender.Reset();
-	ToolbarButtonExtension.Reset();
+	if (ToolbarButtonExtender.IsValid())
+	{
+		ToolbarButtonExtender->RemoveExtension(ToolbarButtonExtension.ToSharedRef());
+		LevelEditorModule.GetToolBarExtensibilityManager()->RemoveExtender(ToolbarButtonExtender);
+
+		ToolbarButtonExtender.Reset();
+		ToolbarButtonExtension.Reset();
+	}
 	
 	
     // unregister UI commands

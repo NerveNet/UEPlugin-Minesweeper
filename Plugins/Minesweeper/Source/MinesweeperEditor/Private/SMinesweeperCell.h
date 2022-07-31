@@ -41,7 +41,9 @@ private:
 	EVisibility GetFlagImageVisibility() const;
 
 
+	//~ Begin SWidget Overrides
 	FReply OnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	//~ End SWidget Overrides
 
 
 public:
@@ -54,6 +56,9 @@ public:
 
 	int32 NeighborMineCount = -1;
 	bool CanPlaceFlag = true;
+
+
+	void Reset();
 
 };
 
