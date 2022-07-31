@@ -36,6 +36,7 @@ public:
 	/** The actual size of each cell on the screen in pixels. */
 	static const int32 CellSize = 28;
 
+	/** The default difficulty settings when the game window is first shown. */
 	static const FMinesweeperDifficulty DefaultDifficulty;
 
 	static const int32 MinGridSize = 2;
@@ -44,12 +45,14 @@ public:
 	static const int32 MinMineCount = 1;
 	int32 MaxMineCount = 225;
 
+	/** Max score used in high score calculation. */
 	static const int32 MaxScore = 1000000;
 
 
 private:
 	UMinesweeperSettings* Settings = nullptr;
 
+	/** The active "tick" timer. */
 	TSharedPtr<FActiveTimerHandle> ActiveTimerHandle;
 
 	int32 CurrentGridSeed = 0;
@@ -129,9 +132,15 @@ private:
 	TSharedPtr<SMinesweeperCell> GetCellWidget(const FIntVector2 InCellCoord);
 	TArray<TSharedPtr<SMinesweeperCell>> GetNeighborCellWidgets(const FIntVector2 InCellCoord);
 
+
+	/** Sets a cell's state to open. */
 	void OpenCell(TSharedPtr<SMinesweeperCell> InCellWidget);
+
+	/** Opens a cell's neighbor cells based on the number of mines surrounding the cells. */
 	void OpenNeighbors(TSharedPtr<SMinesweeperCell> InCellWidget);
 
+
+	/** Perform a function on every cell of the grid. */
 	void ForEachCell(TFunctionRef<void(TSharedPtr<SMinesweeperCell>)> InFunc);
 
 	#pragma endregion

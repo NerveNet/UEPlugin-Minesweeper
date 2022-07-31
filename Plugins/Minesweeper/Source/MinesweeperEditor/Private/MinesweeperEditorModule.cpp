@@ -304,7 +304,6 @@ void FMinesweeperEditorModule::ToggleMinesweeperWindowMode()
 		OpenMinesweeperWindow();
 }
 
-/** Attemping to center windows, but not working yet. */
 void FMinesweeperEditorModule::RecenterMinesweeperWindow()
 {
 	if (IsMinesweeperWindowVisible())

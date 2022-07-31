@@ -31,6 +31,7 @@ bool UMinesweeperSettings::CanEditChange(const FProperty* InProperty) const
 		propertyName == GET_MEMBER_NAME_CHECKED(UMinesweeperSettings, LastPlayerName) || 
 		propertyName == GET_MEMBER_NAME_CHECKED(UMinesweeperSettings, LastSettings)
 	) {
+		// framework for setting enable/disable
 
 		return bSuper;
 	}
@@ -50,7 +51,13 @@ void UMinesweeperSettings::PostEditChangeProperty(FPropertyChangedEvent& Propert
 		propertyName == GET_MEMBER_NAME_CHECKED(UMinesweeperSettings, LastPlayerName) ||
 		propertyName == GET_MEMBER_NAME_CHECKED(UMinesweeperSettings, LastSettings)
 	) {
-
+		// framework for post setting change
+	}
+	else if (propertyName == GET_MEMBER_NAME_CHECKED(UMinesweeperSettings, AddNewHighScore))
+	{
+		HighScores.Insert(FMinesweeperHighScore(LastPlayerName, FMath::FRandRange(5000, 200000), FMath::FRandRange(20, 300), FMath::FRandRange(50, 2000)), 0);
+		HighScores.RemoveAt(HighScores.Num() - 1);
+		AddNewHighScore = false;
 	}
 
 	OnSettingsChanged.Broadcast(PropertyChangedEvent);

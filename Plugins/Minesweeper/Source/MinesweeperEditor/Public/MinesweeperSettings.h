@@ -153,7 +153,10 @@ public:
 		FMinesweeperDifficulty LastSettings;
 
 	/** List of the last ten high scores. */
-	UPROPERTY(Config) TArray<FMinesweeperHighScore> HighScores;
+	UPROPERTY(Config/*, EditAnywhere, Category = "General"*/) TArray<FMinesweeperHighScore> HighScores;
+
+	/** Used for debugging to add new high scores. */
+	UPROPERTY(Config/*, EditAnywhere, Category = "General"*/) bool AddNewHighScore;
 
 };
 

@@ -827,14 +827,6 @@ FReply SMinesweeper::OnRestartGameClick()
 FReply SMinesweeper::OnSwitchWindowModeClick()
 {
 	FMinesweeperEditorModule::Get().ToggleMinesweeperWindowMode();
-
-	{
-		Settings->HighScores.Insert(FMinesweeperHighScore(Settings->LastPlayerName, 58045, 751, 355), 2);
-		Settings->HighScores.RemoveAt(Settings->HighScores.Num() - 1);
-
-		RefreshHighScores();
-	}
-
 	return FReply::Handled();
 }
 

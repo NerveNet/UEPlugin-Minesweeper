@@ -18,8 +18,6 @@ DECLARE_LOG_CATEGORY_EXTERN(LogMinesweeperEditor, All, All);
 
 class MINESWEEPEREDITOR_API FMinesweeperEditorModule : public IModuleInterface
 {
-    friend class UMinesweeperSettings;
-
 private:
 	TSharedPtr<FUICommandList> CommandList;
 	
@@ -34,7 +32,10 @@ private:
     TSharedPtr<FExtender> MainMenuExtender;
     
     
+    /** Holds a pointer to the actual game slate widget. */
     TSharedPtr<SMinesweeper> MinesweeperGame;
+
+    /** Holds a pointer to the game slate widget's active standalone window parent. */
     TSharedPtr<SWindow> MinesweeperWindow;
 
 
@@ -47,6 +48,7 @@ public:
     static inline const FPluginDescriptor& GetPluginDescriptor() { return IPluginManager::Get().FindPlugin(GetPluginName().ToString())->GetDescriptor(); }
     
     
+    /** Gets the name of the Minesweeper editor docking tab. */
     static inline const FName GetMinesweeperDockTabName() { return FName("MinesweeperTab"); }
     
 
@@ -63,11 +65,14 @@ private:
     void BuildWindowsMenu(FMenuBuilder& MenuBuilder);
 	
 	
+    /** Creates a generic SWindow parent for the game slate widget. */
     TSharedRef<SWindow> CreateGenericWindowForGame();
+
+    /** Creates a generic SDockTab parent for the game slate widget. */
     TSharedRef<SDockTab> CreateGenericDockTabForGame();
 
 
-    /** Helper function to create window. */
+    /** Helper function to add a window to the editor slate application. */
     void AddWindowToSlateApplication(TSharedRef<SWindow> InWindow);
 
     bool IsMinesweeperDockTabOpen() const;
@@ -79,8 +84,10 @@ private:
     void CloseMinesweeperWindow(const bool bInForceImmediately = false);
 
 public:
+    /** Opens the Minesweeper game with the last used window mode. If the Minesweeper window is already open, toggles between standalone and docking tab window modes. */
     void ToggleMinesweeperWindowMode();
 
+    /** Experimental and does not work yet. Recenters the minesweeper parent window on screen. */
     void RecenterMinesweeperWindow();
 
 
