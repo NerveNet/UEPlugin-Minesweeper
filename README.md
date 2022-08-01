@@ -1,4 +1,4 @@
-      ![alt text](https://github.com/NerveNet/UE5-Minesweeper/blob/main/Plugins/Minesweeper/Resources/Icon128.png?raw=true)
+![alt text](https://github.com/NerveNet/UE5-Minesweeper/blob/main/Plugins/Minesweeper/Resources/Icon128.png?raw=true)
 # Minesweeper
  
 by Brad Monahan
