@@ -50,36 +50,60 @@ public:
 
 
 private:
+	/** Settings saved to disk. */
 	UMinesweeperSettings* Settings = nullptr;
 
 	/** The active "tick" timer. */
 	TSharedPtr<FActiveTimerHandle> ActiveTimerHandle;
 
+
+	/** The random seed used to generate the current grid mine layout. */
 	int32 CurrentGridSeed = 0;
+
+	/** The current game difficulty settings. Holds the main grid size and mine count. */
 	FMinesweeperDifficulty CurrentSettings;
 
+	/** True if the game is active and running. Game is not active until the user clicks the first cell. */
 	bool IsGameActive = false;
+
+	/** True if the game is paused and the user is setting up a game with new settings. */
 	bool IsGamePaused = false;
 
-	/** The total time in seconds the current game has been running. */
+	/** The time in seconds the current game has been running. Doesn't start until the game is active. */
 	float GameTime = 0.0f;
 
+	/** The total user left and right mouse clicks for the current game. Used for scoring. */
 	int32 TotalClicks = 0;
-	int32 FlagsRemaining = 0;
-	int32 NumClosedCells = 0;
-	int32 NumOpenedCells = 0;
 
+	/** The number of flags left that the user can place. */
+	int32 FlagsRemaining = 0;
+
+	/** The number of cells the user has left to open. */
+	int32 NumClosedCells = 0;
+
+	/** The number of cells the user has opened. */
+	int32 NumOpenedCells = 0;
 
 	/** Holds the last achieved high score ranking. */
 	int8 LastHighScoreRank = -1;
 
 
+	/** The currently active main panel. This should always be 0 or 1. 0 = Game Setup Panel, 1 = Minesweeper Grid Game Panel */
 	int32 ActiveMainPanel = 0;
+
+	/** The currently active game setup panel. This should always be 0 or 1. 0 = Game Settings Panel, 1 = High Scores Panel */
 	int32 ActiveGameSetupPanel = 0;
 
+
+	/** Text box widget for the player name. */
 	TSharedPtr<SEditableTextBox> NameTextBox;
+
+	/** High scores widget. */
 	TSharedPtr<SVerticalBox> HighScoresList;
+
+	/** Game grid widget. */
 	TSharedPtr<SUniformGridPanel> GridPanel;
+
 
 	/** Indexed lookup map for quick grid cell widget access. */
 	TMap<int32, TSharedRef<SMinesweeperCell>> CellMap;
@@ -89,20 +113,12 @@ private:
 	void RefreshHighScores();
 
 
+	/** The games update timer "tick". */
 	EActiveTimerReturnType UpdateGameTick(double InCurrentTime, float InDeltaTime);
 
 
 	void OnPlayerNameChanged(const FText& NewText);
 	void OnPlayerNameCommitted(const FText& NewText, ETextCommit::Type InTextCommit);
-
-
-	FReply OnDifficultyClick(const int32 InDifficultyLevel);
-	FReply OnStartNewGameClick();
-	FReply OnContinueGameClick();
-	FReply OnNewGameClick();
-	FReply OnRestartGameClick();
-	FReply OnSwitchWindowModeClick();
-	FReply OnGotoNewGamePanel();
 
 
 	FSlateColor GetDifficultyColor(const int32 InDifficultyLevel) const;
@@ -112,9 +128,24 @@ private:
 	EVisibility GetWinLoseVisibility() const;
 	FSlateColor GetWinLoseColor() const;
 	FText GetWinLoseText() const;
+	EVisibility GetHighScoreRankVisibility() const;
+	FText GetHighScoreRankText() const;
 
 
+	/** Button click handlers. */
+	FReply OnDifficultyClick(const int32 InDifficultyLevel);
+	FReply OnStartNewGameClick();
+	FReply OnContinueGameClick();
+	FReply OnNewGameClick();
+	FReply OnRestartGameClick();
+	FReply OnSwitchWindowModeClick();
+	FReply OnGotoNewGamePanel();
+
+
+	/** Callback for when a cell is left clicked by the user. */
 	void OnLeftClickCell(TSharedPtr<SMinesweeperCell> InCellWidget);
+
+	/** Callback for when a cell is right clicked by the user. */
 	void OnRightClickCell(TSharedPtr<SMinesweeperCell> InCellWidget);
 
 

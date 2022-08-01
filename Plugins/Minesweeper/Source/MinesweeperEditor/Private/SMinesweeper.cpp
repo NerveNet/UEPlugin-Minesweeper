@@ -267,8 +267,10 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 											[
 												SNew(SNumericEntryBox<int32>)
 												.AllowSpin(true)
-												.MinSliderValue(MinMineCount).MaxSliderValue(MaxMineCount)
-												.MinValue(MinMineCount).MaxValue(MaxMineCount)
+												.MinSliderValue_Lambda([&]() { return MinMineCount; })
+												.MaxSliderValue_Lambda([&]() { return MaxMineCount; })
+												.MinValue_Lambda([&]() { return MinMineCount; })
+												.MaxValue_Lambda([&]() { return MaxMineCount; })
 												.Value_Lambda([&] { return Settings->LastSettings.MineCount; })
 												.OnValueChanged_Lambda([&](int32 InNewValue) { Settings->LastSettings.MineCount = InNewValue; })
 											]
@@ -551,7 +553,7 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 					SNew(SBorder)
 					.HAlign(HAlign_Fill).VAlign(VAlign_Center)
 					.Visibility(this, &SMinesweeper::GetWinLoseVisibility)
-					.BorderBackgroundColor_Lambda([&]() { return HasWon() ? FMinesweeperStyle::GetColor("Color.Win") : FMinesweeperStyle::GetColor("Color.Lose"); })
+					.BorderBackgroundColor(this, &SMinesweeper::GetWinLoseColor)
 					//.BorderImage([&]() { return HasWon() ? FMinesweeperStyle::GetBrush("Border.Win") : FMinesweeperStyle::GetBrush("Border.Lose"); })
 					[
 						SNew(SVerticalBox)
@@ -569,17 +571,17 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 						.Padding(0, 0, 0, 10)
 						[
 							SNew(STextBlock)
+							.Visibility(this, &SMinesweeper::GetHighScoreRankVisibility)
 							.TextStyle(FMinesweeperStyle::Get(), "Text.WinLose")
-							.Visibility_Lambda([&]() { return LastHighScoreRank > -1 ? EVisibility::SelfHitTestInvisible : EVisibility::Hidden; })
 							.Text(LOCTEXT("NewHighScoreLabel", "New High Score!"))
 						]
 						+ SVerticalBox::Slot().AutoHeight()
 						.HAlign(HAlign_Center).VAlign(VAlign_Center)
 						[
 							SNew(STextBlock)
+							.Visibility(this, &SMinesweeper::GetHighScoreRankVisibility)
 							.TextStyle(FMinesweeperStyle::Get(), "Text.WinLose")
-							.Visibility_Lambda([&]() { return LastHighScoreRank > -1 ? EVisibility::SelfHitTestInvisible : EVisibility::Hidden; })
-							.Text_Lambda([&]() { return FText::Format(LOCTEXT("NewHighScoreRankLabel", "Rank {0}"), FText::FromString(FString::FromInt(LastHighScoreRank + 1))); })
+							.Text(this, &SMinesweeper::GetHighScoreRankText)
 						]
 					]
 				]
@@ -589,7 +591,7 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 
 	RefreshHighScores();
 	
-	ActiveTimerHandle = RegisterActiveTimer(0.f, FWidgetActiveTimerDelegate::CreateSP(this, &SMinesweeper::UpdateGameTick));
+	ActiveTimerHandle = RegisterActiveTimer(0.0f, FWidgetActiveTimerDelegate::CreateSP(this, &SMinesweeper::UpdateGameTick));
 }
 
 
@@ -720,6 +722,72 @@ void SMinesweeper::OnPlayerNameCommitted(const FText& NewText, ETextCommit::Type
 }
 
 
+FSlateColor SMinesweeper::GetDifficultyColor(const int32 InDifficultyLevel) const
+{
+	const FLinearColor transparentColor = FLinearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	const FLinearColor selectedColor = FLinearColor(1.0f, 1.0f, 1.0f, 0.5f);
+
+	if (InDifficultyLevel == 0)
+	{
+		return CurrentSettings.IsBeginner() ? selectedColor : transparentColor;
+	}
+	else if (InDifficultyLevel == 1)
+	{
+		return CurrentSettings.IsIntermediate() ? selectedColor : transparentColor;
+	}
+	else if (InDifficultyLevel == 2)
+	{
+		return CurrentSettings.IsExpert() ? selectedColor : transparentColor;
+	}
+	else if (InDifficultyLevel == 3)
+	{
+
+	}
+
+	return transparentColor;
+}
+
+FText SMinesweeper::GetTimerText() const
+{
+	return IsGameActive ? FText::FromString(FString::FromInt(FMath::FloorToInt32(GameTime))) : FText();
+}
+
+const FSlateBrush* SMinesweeper::GetSmileImage() const
+{
+	return FMinesweeperStyle::GetBrush((IsGameActive || GameTime == 0.0f || HasWon()) ? "MrSmile.Alive" : "MrSmile.Dead");
+}
+
+FText SMinesweeper::GetFlagsRemainingText() const
+{
+	return FText::FromString(FString::FromInt(FlagsRemaining));
+}
+
+EVisibility SMinesweeper::GetWinLoseVisibility() const
+{
+	return (!IsGameActive && GameTime > 0.0f) ? EVisibility::SelfHitTestInvisible : EVisibility::Hidden;
+}
+
+FSlateColor SMinesweeper::GetWinLoseColor() const
+{
+	return FMinesweeperStyle::GetColor(HasWon() ? "Color.Win" : "Color.Lose");
+}
+
+FText SMinesweeper::GetWinLoseText() const
+{
+	return HasWon() ? LOCTEXT("GameWinnerLabel", "Winner") : LOCTEXT("GameLoserLabel", "Loser");
+}
+
+EVisibility SMinesweeper::GetHighScoreRankVisibility() const
+{
+	return LastHighScoreRank > -1 ? EVisibility::SelfHitTestInvisible : EVisibility::Hidden;
+}
+
+FText SMinesweeper::GetHighScoreRankText() const
+{
+	return FText::Format(LOCTEXT("NewHighScoreRankLabel", "Rank {0}"), FText::FromString(FString::FromInt(LastHighScoreRank + 1)));
+}
+
+
 FReply SMinesweeper::OnDifficultyClick(const int32 InDifficultyLevel)
 {
 	if (InDifficultyLevel == 0)
@@ -733,13 +801,6 @@ FReply SMinesweeper::OnDifficultyClick(const int32 InDifficultyLevel)
 	else if (InDifficultyLevel == 2)
 	{
 		Settings->LastSettings = FMinesweeperDifficulty::Expert;
-	}
-	else if (InDifficultyLevel == 3)
-	{
-		const FVector2D viewportSize = GEditor->GetActiveViewport()->GetSizeXY();
-		Settings->LastSettings.Width = FMath::FloorToInt32(viewportSize.X / 32.0f);
-		Settings->LastSettings.Height = FMath::FloorToInt32(viewportSize.Y / 32.0f);
-		Settings->LastSettings.MineCount = FMath::CeilToInt32(Settings->LastSettings.TotalCells() * 0.25f);
 	}
 
 	return FReply::Handled();
@@ -841,62 +902,6 @@ FReply SMinesweeper::OnGotoNewGamePanel()
 	ActiveMainPanel = 0;
 
 	return FReply::Handled();
-}
-
-
-FSlateColor SMinesweeper::GetDifficultyColor(const int32 InDifficultyLevel) const
-{
-	const FLinearColor transparentColor = FLinearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	const FLinearColor selectedColor = FLinearColor(1.0f, 1.0f, 1.0f, 0.5f);
-
-	if (InDifficultyLevel == 0)
-	{
-		return CurrentSettings.IsBeginner() ? selectedColor : transparentColor;
-	}
-	else if (InDifficultyLevel == 1)
-	{
-		return CurrentSettings.IsIntermediate() ? selectedColor : transparentColor;
-	}
-	else if (InDifficultyLevel == 2)
-	{
-		return CurrentSettings.IsExpert() ? selectedColor : transparentColor;
-	}
-	else if (InDifficultyLevel == 3)
-	{
-		
-	}
-
-	return transparentColor;
-}
-
-FText SMinesweeper::GetTimerText() const
-{
-	return IsGameActive ? FText::FromString(FString::FromInt(FMath::FloorToInt32(GameTime))) : FText();
-}
-
-const FSlateBrush* SMinesweeper::GetSmileImage() const
-{
-	return FMinesweeperStyle::GetBrush((IsGameActive || GameTime == 0.0f || HasWon()) ? "MrSmile.Alive" : "MrSmile.Dead");
-}
-
-FText SMinesweeper::GetFlagsRemainingText() const
-{
-	return FText::FromString(FString::FromInt(FlagsRemaining));
-}
-
-EVisibility SMinesweeper::GetWinLoseVisibility() const
-{
-	return (!IsGameActive && GameTime > 0.0f) ? EVisibility::SelfHitTestInvisible : EVisibility::Hidden;
-}
-
-FSlateColor SMinesweeper::GetWinLoseColor() const
-{
-	return FMinesweeperStyle::GetColor(HasWon() ? "Color.Win" : "Color.Lose");
-}
-
-FText SMinesweeper::GetWinLoseText() const
-{
-	return HasWon() ? LOCTEXT("GameWinnerLabel", "Winner") : LOCTEXT("GameLoserLabel", "Loser");
 }
 
 
