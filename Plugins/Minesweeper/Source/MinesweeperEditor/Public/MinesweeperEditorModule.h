@@ -7,7 +7,6 @@
 #include "PluginDescriptor.h"
 
 class FUICommandList;
-class SMinesweeper;
 class SMinesweeperWindow;
 
 
@@ -21,22 +20,18 @@ class MINESWEEPEREDITOR_API FMinesweeperEditorModule : public IModuleInterface
 private:
 	TSharedPtr<FUICommandList> CommandList;
 	
-    /** Extender for toolbar button. */
+    /** Toolbar and menu extenders. */
     TSharedPtr<FExtender> ToolbarButtonExtender;
     TSharedPtr<const FExtensionBase> ToolbarButtonExtension;
-
-    /** Extender for "Windows" menu. */
     TSharedPtr<FExtender> ToolMenuExtender;
-
-    /** Extender for LevelEditor main file menu dropdown. */
     TSharedPtr<FExtender> MainMenuExtender;
     
     
     /** Holds a pointer to the actual game slate widget. */
-    TSharedPtr<SMinesweeper> MinesweeperGame;
+    TSharedPtr<SMinesweeperWindow> MinesweeperGame;
 
-    /** Holds a pointer to the game slate widget's active standalone window parent. */
-    TSharedPtr<SWindow> MinesweeperWindow;
+    /** Pointer to the generic SWindow parent when in standalone window mode. */
+    TSharedPtr<SWindow> StandaloneParentWindow;
 
 
 public:
@@ -48,7 +43,6 @@ public:
     static inline const FPluginDescriptor& GetPluginDescriptor() { return IPluginManager::Get().FindPlugin(GetPluginName().ToString())->GetDescriptor(); }
     
     
-    /** Gets the name of the Minesweeper editor docking tab. */
     static inline const FName GetMinesweeperDockTabName() { return FName("MinesweeperTab"); }
     
 
@@ -65,10 +59,7 @@ private:
     void BuildWindowsMenu(FMenuBuilder& MenuBuilder);
 	
 	
-    /** Creates a generic SWindow parent for the game slate widget. */
     TSharedRef<SWindow> CreateGenericWindowForGame();
-
-    /** Creates a generic SDockTab parent for the game slate widget. */
     TSharedRef<SDockTab> CreateGenericDockTabForGame();
 
 

@@ -9,7 +9,7 @@
 
 
 
-class MINESWEEPEREDITOR_API FMinesweeperCommands : public TCommands<FMinesweeperCommands>
+class FMinesweeperCommands : public TCommands<FMinesweeperCommands>
 {
 public:
 	FMinesweeperCommands()

@@ -21,6 +21,10 @@
 		{
 			"Name": "Minesweeper",
 			"Enabled": true
+		},
+		{
+			"Name": "SlateInsights",
+			"Enabled": true
 		}
 	]
 }

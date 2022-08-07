@@ -4,7 +4,7 @@
 #include "MinesweeperCommands.h"
 #include "MinesweeperStyle.h"
 #include "MinesweeperSettings.h"
-#include "SMinesweeper.h"
+#include "Slate/SMinesweeperWindow.h"
 #include "LevelEditor.h"
 #include "Widgets/Docking/SDockTab.h"
 #include "Widgets/Layout/SScaleBox.h"
@@ -95,12 +95,12 @@ void FMinesweeperEditorModule::ShutdownModule()
 
 FText FMinesweeperEditorModule::GetMinesweeperLabel()
 {
-	return LOCTEXT("MinesweeperToolbarButtonLabel", "Minesweeper");
+	return LOCTEXT("MinesweeperLabel", "Minesweeper");
 }
 
 FText FMinesweeperEditorModule::GetMinesweeperTooltip()
 {
-	return LOCTEXT("MinesweeperToolbarButtonTooltip", "Why work when you can play Minesweeper???");
+	return LOCTEXT("MinesweeperTooltip", "Why work when you can play Minesweeper???");
 }
 
 
@@ -141,7 +141,7 @@ TSharedRef<SWindow> FMinesweeperEditorModule::CreateGenericWindowForGame()
 {
 	if (!MinesweeperGame.IsValid())
 	{
-		MinesweeperGame = SNew(SMinesweeper);
+		MinesweeperGame = SNew(SMinesweeperWindow);
 	}
 	return SNew(SWindow)
 		.Title(FMinesweeperEditorModule::GetMinesweeperLabel())
@@ -164,7 +164,7 @@ TSharedRef<SDockTab> FMinesweeperEditorModule::CreateGenericDockTabForGame()
 {
 	if (!MinesweeperGame.IsValid())
 	{
-		MinesweeperGame = SNew(SMinesweeper);
+		MinesweeperGame = SNew(SMinesweeperWindow);
 	}
 	return
 		SNew(SDockTab)
@@ -194,14 +194,14 @@ void FMinesweeperEditorModule::AddWindowToSlateApplication(TSharedRef<SWindow> I
 
 bool FMinesweeperEditorModule::IsMinesweeperWindowVisible()
 {
-	if (!MinesweeperWindow.IsValid()) return false;
+	if (!StandaloneParentWindow.IsValid()) return false;
 
 	TArray<TSharedRef<SWindow>> windows;
 	FSlateApplication::Get().GetAllVisibleWindowsOrdered(windows);
 
 	for (const TSharedRef<SWindow> window : windows)
 	{
-		if (window == MinesweeperWindow.ToSharedRef())
+		if (window == StandaloneParentWindow.ToSharedRef())
 		{
 			return true;
 		}
@@ -216,27 +216,27 @@ void FMinesweeperEditorModule::OpenMinesweeperWindow()
 
 	if (IsMinesweeperWindowVisible())
 	{
-		MinesweeperWindow->BringToFront();
+		StandaloneParentWindow->BringToFront();
 	}
 	else
 	{
-		MinesweeperWindow = CreateGenericWindowForGame();
-		AddWindowToSlateApplication(MinesweeperWindow.ToSharedRef());
+		StandaloneParentWindow = CreateGenericWindowForGame();
+		AddWindowToSlateApplication(StandaloneParentWindow.ToSharedRef());
 		//RecenterMinesweeperWindow();
 	}
 }
 
 void FMinesweeperEditorModule::CloseMinesweeperWindow(const bool bInForceImmediately)
 {
-	if (!MinesweeperWindow.IsValid()) return;
+	if (!StandaloneParentWindow.IsValid()) return;
 
 	if (bInForceImmediately)
-		MinesweeperWindow->DestroyWindowImmediately();
+		StandaloneParentWindow->DestroyWindowImmediately();
 	else
-		MinesweeperWindow->RequestDestroyWindow();
+		StandaloneParentWindow->RequestDestroyWindow();
 
 	MinesweeperGame.Reset();
-	MinesweeperWindow.Reset();
+	StandaloneParentWindow.Reset();
 }
 
 
@@ -277,13 +277,13 @@ void FMinesweeperEditorModule::ToggleMinesweeperWindowMode()
 	else if (IsMinesweeperDockTabOpen())
 	{
 		// create new standalone window and close dock tab
-		MinesweeperWindow = CreateGenericWindowForGame();
-		AddWindowToSlateApplication(MinesweeperWindow.ToSharedRef());
+		StandaloneParentWindow = CreateGenericWindowForGame();
+		AddWindowToSlateApplication(StandaloneParentWindow.ToSharedRef());
 		//RecenterMinesweeperWindow();
 
-		if (MinesweeperWindow.IsValid())
+		if (StandaloneParentWindow.IsValid())
 		{
-			MinesweeperGame->AssignParentWidget(MinesweeperWindow);
+			MinesweeperGame->AssignParentWidget(StandaloneParentWindow);
 			CloseMinesweeperDockTab();
 		}
 
@@ -309,13 +309,13 @@ void FMinesweeperEditorModule::RecenterMinesweeperWindow()
 	if (IsMinesweeperWindowVisible())
 	{
 		const FVector2D viewportSize = GEditor->GetActiveViewport()->GetSizeXY();
-		MinesweeperWindow->MoveWindowTo((viewportSize - MinesweeperWindow->GetTickSpaceGeometry().GetLocalSize()) / 2.0f);
+		StandaloneParentWindow->MoveWindowTo((viewportSize - StandaloneParentWindow->GetTickSpaceGeometry().GetLocalSize()) / 2.0f);
 	}
 	else if (IsMinesweeperDockTabOpen())
 	{
 		const FVector2D viewportSize = GEditor->GetActiveViewport()->GetSizeXY();
 		TSharedPtr<SWindow> dockTabParentWindow = FGlobalTabmanager::Get()->TryInvokeTab(FTabId(GetMinesweeperDockTabName()))->GetParentWindow();
-		dockTabParentWindow->MoveWindowTo((viewportSize - MinesweeperWindow->GetTickSpaceGeometry().GetLocalSize()) / 2.0f);
+		dockTabParentWindow->MoveWindowTo((viewportSize - StandaloneParentWindow->GetTickSpaceGeometry().GetLocalSize()) / 2.0f);
 	}
 }
 

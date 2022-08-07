@@ -9,12 +9,17 @@
 	"CreatedByURL": "http://www.nervenet.net",
 	"SupportURL": "mailto:brad@nervenet.net",
 	"IsBetaVersion": false,
-	"CanContainContent": false,
+	"CanContainContent": true,
 	"Installed": false,
 	"Modules": [
 		{
 			"Name": "MinesweeperEditor",
 			"Type": "Editor",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "MinesweeperRuntime",
+			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}
 	],

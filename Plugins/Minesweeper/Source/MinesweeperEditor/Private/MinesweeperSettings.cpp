@@ -1,14 +1,8 @@
 // Copyright 2022 Brad Monahan. All Rights Reserved.
 
 #include "MinesweeperSettings.h"
-#include "SMinesweeper.h"
 
 
-
-
-FMinesweeperDifficulty const FMinesweeperDifficulty::Beginner = FMinesweeperDifficulty(9, 9, 10);		// mine probability: 10 /  81 = 0.12345%
-FMinesweeperDifficulty const FMinesweeperDifficulty::Intermediate = FMinesweeperDifficulty(16, 16, 40);	// mine probability: 40 / 256 = 0.15625%
-FMinesweeperDifficulty const FMinesweeperDifficulty::Expert = FMinesweeperDifficulty(30, 16, 99);		// mine probability: 99 / 576 = 0.17187%
 
 
 UMinesweeperSettings::UMinesweeperSettings(const FObjectInitializer& Initializer) : Super(Initializer)
@@ -27,10 +21,8 @@ bool UMinesweeperSettings::CanEditChange(const FProperty* InProperty) const
 	const FName propertyName = InProperty->GetFName();
 	const FString propertyNameStr = InProperty->GetName();
 
-	if (
-		propertyName == GET_MEMBER_NAME_CHECKED(UMinesweeperSettings, LastPlayerName) || 
-		propertyName == GET_MEMBER_NAME_CHECKED(UMinesweeperSettings, LastSettings)
-	) {
+	if (propertyName == GET_MEMBER_NAME_CHECKED(UMinesweeperSettings, AddNewHighScore))
+	{
 		// framework for setting enable/disable
 
 		return bSuper;
@@ -47,15 +39,9 @@ void UMinesweeperSettings::PostEditChangeProperty(FPropertyChangedEvent& Propert
 	const FName memberPropertyName = PropertyChangedEvent.MemberProperty ? PropertyChangedEvent.MemberProperty->GetFName() : NAME_None;
 	const FString memberPropertyStr = PropertyChangedEvent.MemberProperty->GetName();
 
-	if (
-		propertyName == GET_MEMBER_NAME_CHECKED(UMinesweeperSettings, LastPlayerName) ||
-		propertyName == GET_MEMBER_NAME_CHECKED(UMinesweeperSettings, LastSettings)
-	) {
-		// framework for post setting change
-	}
-	else if (propertyName == GET_MEMBER_NAME_CHECKED(UMinesweeperSettings, AddNewHighScore))
+	if (propertyName == GET_MEMBER_NAME_CHECKED(UMinesweeperSettings, AddNewHighScore))
 	{
-		HighScores.Insert(FMinesweeperHighScore(LastPlayerName, FMath::FRandRange(5000, 200000), FMath::FRandRange(20, 300), FMath::FRandRange(50, 2000)), 0);
+		HighScores.Insert(FMinesweeperHighScore(LastPlayerName, FMath::RandRange(5000, 200000), FMath::RandRange(20, 300), FMath::RandRange(50, 2000)), 0);
 		HighScores.RemoveAt(HighScores.Num() - 1);
 		AddNewHighScore = false;
 	}
@@ -87,5 +73,8 @@ void UMinesweeperSettings::ResetToDefaults()
 	HighScores.Add(FMinesweeperHighScore(LastPlayerName,  20,  900.0f));
 	HighScores.Add(FMinesweeperHighScore(LastPlayerName,  10, 1000.0f)); // index 9 is rank 10
 
-	LastSettings = SMinesweeper::DefaultDifficulty;
+	LastDifficulty = SMinesweeperWindow::DefaultDifficulty;
+
+	CellDrawSize = 28.0f;
+	UseGridCanvas = false;
 }

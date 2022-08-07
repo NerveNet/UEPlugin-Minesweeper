@@ -4,9 +4,9 @@ using UnrealBuildTool;
 using System.IO;
 
 
-public class MinesweeperEditor : ModuleRules
+public class MinesweeperRuntime : ModuleRules
 {
-	public MinesweeperEditor(ReadOnlyTargetRules Target) : base(Target)
+	public MinesweeperRuntime(ReadOnlyTargetRules Target) : base(Target)
     {
 	    PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	    //PrivatePCHHeaderFile = "Private/MinesweeperPCH.h";
@@ -29,19 +29,13 @@ public class MinesweeperEditor : ModuleRules
 		PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"MinesweeperRuntime",
                 "Core",
                 "CoreUObject",
                 "InputCore",
                 "Engine",
                 "SlateCore", 
                 "Slate",
-				"Projects",
-				"UnrealEd",
-				"EditorStyle",
-                "LevelEditor",
-				"DeveloperSettings",
-				"Settings"
+				"Projects"
 			}
         );
 

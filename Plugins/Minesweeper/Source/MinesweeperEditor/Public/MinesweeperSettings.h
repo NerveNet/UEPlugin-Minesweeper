@@ -1,61 +1,11 @@
 // Copyright 2022 Brad Monahan. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Engine/DeveloperSettings.h"
 #include "MinesweeperEditorModule.h"
+#include "MinesweeperDifficulty.h"
 #include "MinesweeperSettings.generated.h"
-
-
-
-
-/**
- * Holds game information about the difficulty.
- */
-USTRUCT()
-struct MINESWEEPEREDITOR_API FMinesweeperDifficulty
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY(Config, EditAnywhere, Category = "Difficulty")
-		int32 Width = 1;
-
-	UPROPERTY(Config, EditAnywhere, Category = "Difficulty")
-		int32 Height = 1;
-
-	UPROPERTY(Config, EditAnywhere, Category = "Difficulty")
-		int32 MineCount = 1;
-
-	FMinesweeperDifficulty() { }
-	FMinesweeperDifficulty(const int32 InWidth, const int32 InHeight, const int32 InMineCount)
-		: Width(InWidth), Height(InHeight), MineCount(InMineCount) { }
-
-	bool operator == (const FMinesweeperDifficulty& InOther) const
-	{
-		return (Width == InOther.Width && Height == InOther.Height && MineCount == InOther.MineCount);
-	}
-	bool operator != (const FMinesweeperDifficulty& InOther) const
-	{
-		return !(*this == InOther);
-	}
-	void operator = (const FMinesweeperDifficulty& InOther)
-	{
-		Width = InOther.Width;
-		Height = InOther.Height;
-		MineCount = InOther.MineCount;
-	}
-
-	int32 TotalCells() const { return Width * Height; }
-
-	bool IsBeginner() const { return *this == Beginner; }
-	bool IsIntermediate() const { return *this == Intermediate; }
-	bool IsExpert() const { return *this == Expert; }
-
-	static const FMinesweeperDifficulty Beginner;
-	static const FMinesweeperDifficulty Intermediate;
-	static const FMinesweeperDifficulty Expert;
-};
 
 
 
@@ -64,7 +14,7 @@ struct MINESWEEPEREDITOR_API FMinesweeperDifficulty
  * Data representation for a single user high score.
  */
 USTRUCT()
-struct MINESWEEPEREDITOR_API FMinesweeperHighScore
+struct FMinesweeperHighScore
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -76,17 +26,17 @@ struct MINESWEEPEREDITOR_API FMinesweeperHighScore
 	UPROPERTY(Config, EditAnywhere, Category = "HighScore")
 		int32 Score = 0;
 
-	/** The time length in seconds the user took to achieve the high score. */
+	/** The time length in seconds the user used to achieve the high score. */
 	UPROPERTY(Config, EditAnywhere, Category = "HighScore")
 		float Time = 0;
 
+	/** Total number of left and right mouse button clicks the user used to achieve the high score. */
 	UPROPERTY(Config, EditAnywhere, Category = "HighScore")
 		int32 Clicks = 0;
 
 	FMinesweeperHighScore() { }
 	FMinesweeperHighScore(const FString& InName, const int32 InScore, const float InTime, const int32 InClicks = 0)
 		: Name(InName), Score(InScore), Time(InTime), Clicks(InClicks) { }
-
 };
 
 
@@ -96,7 +46,7 @@ struct MINESWEEPEREDITOR_API FMinesweeperHighScore
  * Developer settings class for the Minesweeper plugin.
  */
 UCLASS(Config="Minesweeper", DefaultConfig)
-class MINESWEEPEREDITOR_API UMinesweeperSettings : public UDeveloperSettings
+class UMinesweeperSettings : public UDeveloperSettings
 {
 	GENERATED_UCLASS_BODY()
 	
@@ -149,14 +99,17 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "General", Meta = (
 			DisplayName = "Difficulty Settings",
-			Tooltip = "The current saved settings that were last entered for the game."))
-		FMinesweeperDifficulty LastSettings;
+			Tooltip = "The current saved difficulty settings that were last entered for the game."))
+		FMinesweeperDifficulty LastDifficulty;
 
-	/** List of the last ten high scores. */
+
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (UIMin = 10.0, ClampMin = 10.0, UIMax = 40.0, ClampMax = 40.0,
+			DisplayName = "Cell Draw Size",
+			Tooltip = "The actual size of each cell on the screen in pixels."))
+		float CellDrawSize;
+
+
 	UPROPERTY(Config/*, EditAnywhere, Category = "General"*/) TArray<FMinesweeperHighScore> HighScores;
-
-	/** Used for debugging to add new high scores. */
-	UPROPERTY(Config/*, EditAnywhere, Category = "General"*/) bool AddNewHighScore;
 
 };
 
