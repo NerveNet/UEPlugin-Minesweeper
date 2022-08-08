@@ -6,5 +6,3 @@ by Brad Monahan
 
 Trial Task for GeoTech
 
-
-* Draws a widget for each grid cell. In the process of switching to a render texture to draw all of the grid cells to instead.
