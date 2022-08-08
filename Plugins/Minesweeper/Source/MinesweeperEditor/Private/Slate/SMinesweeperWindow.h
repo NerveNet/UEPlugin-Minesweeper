@@ -3,14 +3,11 @@
 
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
-#include "Widgets/DeclarativeSyntaxSupport.h"
 #include "MinesweeperGridCanvas.h"
 #include "MinesweeperSettings.h"
 
 class SWidgetSwitcher;
 class SEditableTextBox;
-class SUniformGridPanel;
-class UMinesweeperGame;
 class SMinesweeper;
 class SMinesweeperHighScores;
 struct FMinesweeperDifficulty;
@@ -44,8 +41,8 @@ private:
 	/** Settings saved to disk. */
 	UMinesweeperSettings* Settings = nullptr;
 
-	/** The active "tick" timer handle. We are using a timer instead of the tick event. */
-	TSharedPtr<FActiveTimerHandle> ActiveTimerHandle;
+
+	FTimerHandle CellDrawResizeTimerHandle;
 
 
 	int32 TitleTextAnimIndex = 20;
@@ -67,7 +64,7 @@ private:
 	TSharedPtr<SMinesweeper> GameWidget;
 
 
-	EActiveTimerReturnType UpdateGameTick(double InCurrentTime, float InDeltaTime);
+	void OnCellDrawSizeChanged(const FPropertyChangedEvent& InPropertyChangedEvent);
 
 
 	FText GetPlayerName() const;

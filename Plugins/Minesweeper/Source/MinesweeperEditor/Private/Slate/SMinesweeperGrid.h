@@ -2,34 +2,36 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Widgets/SCompoundWidget.h"
-#include "MinesweeperGridCanvas.h"
-
-class SUniformGridPanel;
-class UMinesweeperGame;
-struct FMinesweeperCell;
+#include "Widgets/Images/SImage.h"
 
 
+
+
+DECLARE_DELEGATE_OneParam(FMinesweeperGridPositionDelegate, const FVector2D&);
+DECLARE_DELEGATE_TwoParams(FMinesweeperGridHoverPositionDelegate, const bool, const FVector2D&);
 
 
 /**
- * 
+ * SMinesweeperGrid - Visual representation of a Minesweeper grid.
  */
-class SMinesweeperGrid : public SCompoundWidget
+class SMinesweeperGrid : public SImage
 {
 public:
 	SLATE_BEGIN_ARGS(SMinesweeperGrid)
-		: _CellDrawSize(28)
 	{ }
 
-		SLATE_ARGUMENT(int32, CellDrawSize)
+		SLATE_EVENT(FMinesweeperGridPositionDelegate, OnCellLeftClick)
+
+		SLATE_EVENT(FMinesweeperGridPositionDelegate, OnCellRightClick)
+
+		SLATE_EVENT(FMinesweeperGridHoverPositionDelegate, OnHoverCellChanged)
+	
+		SLATE_ARGUMENT(const FSlateBrush*, GridCanvasBrush)
 
 	SLATE_END_ARGS()
 
 
-	SMinesweeperGrid();
-
-	void Construct(const FArguments& InArgs, TStrongObjectPtr<UMinesweeperGame> InGame);
+	void Construct(const FArguments& InArgs);
 
 
 	//~ Begin SWidget Overrides
@@ -43,30 +45,9 @@ public:
 	//~ End SWidget Overrides
 
 
-	TStrongObjectPtr<UMinesweeperGame> GetGame() const { return Game; }
-
-
-	void CreateGridCells();
-
-
 private:
-	int32 CellDrawSize;
-	bool UseGridCanvas;
-
-	TStrongObjectPtr<UMinesweeperGame> Game;
-
-
-	/** The random seed used to generate the current grid mine layout. */
-	int32 CurrentGridSeed = 0;
-
-
-	/** Internal slate brush that holds the texture resource. */
-	FSlateBrush GridCanvasBrush;
-
-	/** Render target texture where the cell textures are drawn for each cell. */
-	TStrongObjectPtr<UMinesweeperGridCanvas> GridCanvas;
-
-	TSharedPtr<SImage> GridCanvasWidget;
-
+	FMinesweeperGridPositionDelegate OnCellLeftClick;
+	FMinesweeperGridPositionDelegate OnCellRightClick;
+	FMinesweeperGridHoverPositionDelegate OnHoverCellChanged;
 
 };

@@ -1,11 +1,6 @@
 // Copyright 2022 Brad Monahan. All Rights Reserved.
 #include "Slate/SMinesweeperGrid.h"
-#include "MinesweeperStyle.h"
-#include "MinesweeperSettings.h"
-#include "MinesweeperGame.h"
 #include "SlateOptMacros.h"
-#include "Widgets/Layout/SUniformGridPanel.h"
-#include "Widgets/Images/SImage.h"
 
 
 #define LOCTEXT_NAMESPACE "SMinesweeperGrid"
@@ -13,96 +8,70 @@
 
 
 
-SMinesweeperGrid::SMinesweeperGrid()
-{
-	// create the canvas we will use to draw all the grid cells on
-	FIntVector2 gridSize = Game->GetDifficulty().GridSize();
-	FVector2D gridCanvasSize(gridSize.X * CellDrawSize, gridSize.Y * CellDrawSize);
-
-	GridCanvas = TStrongObjectPtr<UMinesweeperGridCanvas>(
-		(UMinesweeperGridCanvas*)UCanvasRenderTarget2D::CreateCanvasRenderTarget2D(
-			GEditor->GetEditorWorldContext().World(),
-			UMinesweeperGridCanvas::StaticClass(),
-			gridCanvasSize.X, gridCanvasSize.Y
-		)
-	);
-
-	GridCanvasBrush.SetResourceObject(GridCanvas.Get());
-	GridCanvasBrush.SetImageSize(gridCanvasSize);
-	GridCanvasBrush.TintColor = FLinearColor::White;
-}
-
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
-void SMinesweeperGrid::Construct(const FArguments& InArgs, TStrongObjectPtr<UMinesweeperGame> InGame)
+void SMinesweeperGrid::Construct(const FArguments& InArgs)
 {
-	CellDrawSize = InArgs._CellDrawSize;
+	OnCellLeftClick = InArgs._OnCellLeftClick;
+	OnCellRightClick = InArgs._OnCellRightClick;
+	OnHoverCellChanged = InArgs._OnHoverCellChanged;
 
-	Game = InGame;
-	check(Game.IsValid());
-	//Game->OnGameOver.AddDynamic(this, &SMinesweeperGrid::OnGameOver);
-
-	GridCanvas->InitCanvas(Game.Get(), CellDrawSize);
-
-	ChildSlot.Padding(0)
-		[
-			SAssignNew(GridCanvasWidget, SImage)
-			.Image(&GridCanvasBrush)
-		];
+	SImage::Construct(
+		SImage::FArguments().Image(InArgs._GridCanvasBrush)
+	);
 }
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 
 FCursorReply SMinesweeperGrid::OnCursorQuery(const FGeometry& InMyGeometry, const FPointerEvent& InCursorEvent) const
 {
-	return SCompoundWidget::OnCursorQuery(InMyGeometry, InCursorEvent);
+	return SImage::OnCursorQuery(InMyGeometry, InCursorEvent);
 }
 
 TOptional<TSharedRef<SWidget>> SMinesweeperGrid::OnMapCursor(const FCursorReply& InCursorReply) const
 {
-	return SCompoundWidget::OnMapCursor(InCursorReply);
+	return SImage::OnMapCursor(InCursorReply);
 }
 
 FReply SMinesweeperGrid::OnMouseButtonDown(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent)
 {
 	const FVector2D localMousePosition = InMyGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
-	const FIntVector2 cellCoord(localMousePosition.X / CellDrawSize, localMousePosition.Y / CellDrawSize);
 
 	if (InMouseEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
 	{
-		Game->TryOpenCell(cellCoord.X, cellCoord.Y);
-		GridCanvas->UpdateResource();
+		OnCellLeftClick.ExecuteIfBound(localMousePosition);
 	}
 	else if (InMouseEvent.IsMouseButtonDown(EKeys::RightMouseButton))
 	{
-		Game->TryFlagCall(cellCoord.X, cellCoord.Y);
-		GridCanvas->UpdateResource();
+		OnCellRightClick.ExecuteIfBound(localMousePosition);
 	}
 
-	return SCompoundWidget::OnMouseButtonDown(InMyGeometry, InMouseEvent);
+	return FReply::Handled();
 }
 
 FReply SMinesweeperGrid::OnMouseButtonUp(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent)
 {
-	return SCompoundWidget::OnMouseButtonUp(InMyGeometry, InMouseEvent);
+	return FReply::Handled();
 }
 
 void SMinesweeperGrid::OnMouseEnter(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent)
 {
-	return SCompoundWidget::OnMouseEnter(InMyGeometry, InMouseEvent);
+	const FVector2D localMousePosition = InMyGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
+	OnHoverCellChanged.ExecuteIfBound(true, localMousePosition);
 }
 
 void SMinesweeperGrid::OnMouseLeave(const FPointerEvent& InMouseEvent)
 {
-	return SCompoundWidget::OnMouseLeave(InMouseEvent);
+	OnHoverCellChanged.ExecuteIfBound(false, FVector2D::ZeroVector);
 }
 
 FReply SMinesweeperGrid::OnMouseMove(const FGeometry& InMyGeometry, const FPointerEvent& InMouseEvent)
 {
-	//const FVector2D localMousePosition = InMyGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
-	//const FIntVector2 cellCoord(localMousePosition.X / CellDrawSize, localMousePosition.Y / CellDrawSize);
+	const FVector2D localMousePosition = InMyGeometry.AbsoluteToLocal(InMouseEvent.GetScreenSpacePosition());
 	//UE_LOG(LogMinesweeperEditor, Log, TEXT("%s"), *localMousePosition.ToString());
 
-	return SCompoundWidget::OnMouseMove(InMyGeometry, InMouseEvent);
+	OnHoverCellChanged.ExecuteIfBound(true, localMousePosition);
+
+	return FReply::Handled();
 }
 
 

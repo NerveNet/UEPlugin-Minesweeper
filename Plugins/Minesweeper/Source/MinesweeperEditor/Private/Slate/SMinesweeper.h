@@ -3,15 +3,9 @@
 
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
-#include "Widgets/DeclarativeSyntaxSupport.h"
-#include "MinesweeperGridCanvas.h"
-#include "MinesweeperSettings.h"
 
-class SWidgetSwitcher;
-class SEditableTextBox;
-class SVerticalBox;
-class SUniformGridPanel;
 class UMinesweeperGame;
+class UMinesweeperGridCanvas;
 class SMinesweeperGrid;
 struct FMinesweeperDifficulty;
 
@@ -22,16 +16,16 @@ DECLARE_DELEGATE_RetVal_ThreeParams(int32, FMinesweeperGameOverHighScoreDelegate
 
 
 /**
- * Slate Minesweeper game UI visualtion for MinesweeperGame class.
+ * Slate Minesweeper game UI visualtion for UMinesweeperGame class.
  */
 class SMinesweeper : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SMinesweeper)
-		: _CellDrawSize(28)
+		: _CellDrawSize(28.0f)
 	{ }
 
-		SLATE_ARGUMENT(int32, CellDrawSize)
+		SLATE_ARGUMENT(float, CellDrawSize)
 
 		SLATE_ATTRIBUTE(FText, PlayerName)
 
@@ -44,16 +38,6 @@ public:
 
 	void Construct(const FArguments& InArgs);
 
-
-	static const int32 MinGridSize = 2;
-	static const int32 MaxGridSize = 30;
-
-	static const int32 MinMineCount = 1;
-	int32 MaxMineCount = 225;
-
-	/** Max score used in high score calculation. */
-	static const int32 MaxScore = 1000000;
-
 	
 	inline UMinesweeperGame* GetGame() const { return Game.Get(); }
 
@@ -65,27 +49,24 @@ public:
 	void ContinueGame();
 
 
+	void SetGridSize(const FIntVector2& InGridSize, const float InNewCellDrawSize = -1.0f);
+
+	float GetCellDrawSize() const;
+	void SetCellDrawSize(const float InCellDrawSize);
+
+
 private:
+	/** Minesweeper game logic object. */
 	TStrongObjectPtr<UMinesweeperGame> Game;
+	/** Render target texture where the cell textures are drawn for each cell. */
+	TStrongObjectPtr<UMinesweeperGridCanvas> GridCanvas;
+	FSlateBrush GridCanvasBrush;
 
 
 	FSimpleDelegate OnGameSetupClick;
 	FMinesweeperGameOverHighScoreDelegate OnGameOver;
 
-
-	/** The active "tick" timer handle. We are using a timer instead of the tick event. */
-	TSharedPtr<FActiveTimerHandle> ActiveTimerHandle;
-
-
-	/** Holds the last achieved high score ranking. */
 	int8 LastHighScoreRank = -1;
-
-
-	TSharedPtr<SMinesweeperGrid> CellGrid;
-
-
-	/** The games update timer "tick". */
-	EActiveTimerReturnType UpdateGameTick(double InCurrentTime, float InDeltaTime);
 
 
 	FText GetTimerText() const;
@@ -100,6 +81,11 @@ private:
 
 	FReply OnRestartGameButtonClick();
 	FReply OnGameSetupButtonClick();
+
+
+	void OnCellLeftClick(const FVector2D& InGridPosition);
+	void OnCellRightClick(const FVector2D& InGridPosition);
+	void OnHoverCellChanged(const bool InIsHovered, const FVector2D& InGridPosition);
 
 };
 

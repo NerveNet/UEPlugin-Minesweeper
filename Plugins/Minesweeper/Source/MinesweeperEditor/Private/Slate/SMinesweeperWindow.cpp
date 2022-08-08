@@ -32,6 +32,7 @@ void SMinesweeperWindow::Construct(const FArguments& InArgs)
 
 
 	Settings = UMinesweeperSettings::Get();
+	Settings->OnCellDrawSizeChanged.AddSP(this, &SMinesweeperWindow::OnCellDrawSizeChanged);
 
 
 	// main window widget layout
@@ -76,7 +77,7 @@ void SMinesweeperWindow::Construct(const FArguments& InArgs)
 					+ SHorizontalBox::Slot().AutoWidth()
 					.HAlign(HAlign_Center).VAlign(VAlign_Center)
 					[
-						SNew(SImage).Image(FMinesweeperStyle::GetBrush("Mine"))
+						SNew(SImage).Image(FMinesweeperStyle::GetBrush("Mine")).DesiredSizeOverride(FVector2D(32.0f))
 					]
 					+ SHorizontalBox::Slot().AutoWidth()
 					.HAlign(HAlign_Center).VAlign(VAlign_Center)
@@ -94,7 +95,7 @@ void SMinesweeperWindow::Construct(const FArguments& InArgs)
 					+ SHorizontalBox::Slot().AutoWidth()
 					.HAlign(HAlign_Center).VAlign(VAlign_Center)
 					[
-						SNew(SImage).Image(FMinesweeperStyle::GetBrush("Mine"))
+						SNew(SImage).Image(FMinesweeperStyle::GetBrush("Mine")).DesiredSizeOverride(FVector2D(32.0f))
 					]
 				]
 
@@ -425,7 +426,6 @@ void SMinesweeperWindow::Construct(const FArguments& InArgs)
 		[
 			SAssignNew(GameWidget, SMinesweeper)
 			.CellDrawSize(Settings->CellDrawSize)
-			.UseGridCanvas(Settings->UseGridCanvas)
 			.PlayerName(this, &SMinesweeperWindow::GetPlayerName)
 			.OnGameSetupClick(this, &SMinesweeperWindow::GotoNewGamePanel)
 			.OnGameOver(this, &SMinesweeperWindow::OnGameOverCallback)
@@ -433,19 +433,21 @@ void SMinesweeperWindow::Construct(const FArguments& InArgs)
 	];
 
 
-	//GameWidget->GetGame()->OnGameOvered.AddRaw(this, &SMinesweeperWindow::OnGameOverCallback);
-
-
-	ActiveTimerHandle = RegisterActiveTimer(0.07f, FWidgetActiveTimerDelegate::CreateSP(this, &SMinesweeperWindow::UpdateGameTick));
+	FTimerHandle titleAnimTimerHandle;
+	GEditor->GetTimerManager()->SetTimer(titleAnimTimerHandle, [&]() { if (++TitleTextAnimIndex > 600) TitleTextAnimIndex = 0; }, 0.07f, true);
 }
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 
-EActiveTimerReturnType SMinesweeperWindow::UpdateGameTick(double InCurrentTime, float InDeltaTime)
+void SMinesweeperWindow::OnCellDrawSizeChanged(const FPropertyChangedEvent& InPropertyChangedEvent)
 {
-	if (++TitleTextAnimIndex > 600) TitleTextAnimIndex = 0;
+	if (!CellDrawResizeTimerHandle.IsValid())
+	{
+		GameWidget->SetCellDrawSize(Settings->CellDrawSize);
+	}
 
-	return EActiveTimerReturnType::Continue;
+	// disable resizing for one second to throttle sizing from settings
+	GEditor->GetTimerManager()->SetTimer(CellDrawResizeTimerHandle, [&]() { CellDrawResizeTimerHandle.Invalidate(); }, 0.0f, false, 1.0f);
 }
 
 

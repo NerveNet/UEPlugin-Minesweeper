@@ -56,12 +56,6 @@ bool UMinesweeperGame::TryOpenCell(const int32 CellX, const int32 CellY)
 
 			OnGameOver.Broadcast(false, GameTime, TotalClicks);
 			OnGameOvered.Broadcast(false, GameTime, TotalClicks);
-
-			// show all mines
-			/*ForEachCell([](TSharedRef<FMinesweeperCell> InCell, const int32 InCellIndex, const FVector2D InCellCoord)
-				{
-					InCell->ShowMine = true;
-				});*/
 		}
 		else if (HasWon()) // check for win condition
 		{
@@ -145,28 +139,10 @@ bool UMinesweeperGame::TryFlagCall(const int32 CellX, const int32 CellY)
 		if (FlagsRemaining > 0)
 		{
 			--FlagsRemaining;
-
-			// disable flagging for all cells if they have used them all
-			/*if (FlagsRemaining == 0)
-			{
-				ForEachCell([&](TSharedRef<FMinesweeperCell> InCell, const int32 InCellIndex, const FVector2D InCellCoord)
-					{
-						clickCell->CanPlaceFlag = false;
-					});
-			}*/
 		}
 	}
 	else
 	{
-		// enable flagging for all cells
-		/*if (FlagsRemaining == 0)
-		{
-			ForEachCell([&](TSharedPtr<FMinesweeperCell> InCell, const int32 InCellIndex, const FVector2D InCellCoord)
-				{
-					clickCell->CanPlaceFlag = true;
-				});
-		}*/
-
 		++FlagsRemaining;
 	}
 
@@ -192,6 +168,17 @@ int32 UMinesweeperGame::GridCoordToIndex(const FIntVector2& InCellCoord) const
 FIntVector2 UMinesweeperGame::GridIndexToCoord(const int32 InCellIndex) const
 {
 	return FIntVector2(FMath::FloorToInt32((float)(InCellIndex % Difficulty.Width)), FMath::FloorToInt32((float)InCellIndex / (float)Difficulty.Width));
+}
+
+
+int32 UMinesweeperGame::FindCellIndex(TSharedPtr<FMinesweeperCell> InCell) const
+{
+	if (!InCell.IsValid()) return -1;
+
+	TArray<TSharedRef<FMinesweeperCell>> allCells;
+	CellMap.GenerateValueArray(allCells);
+
+	return allCells.Find(InCell.ToSharedRef());
 }
 
 
@@ -227,10 +214,11 @@ TArray<TSharedRef<FMinesweeperCell>> UMinesweeperGame::GetNeighborCells(const in
 	{
 		if (i == 4) continue; // skip middle cell (self)
 
-		int32 cellIndex = GridCoordToIndex(FIntVector2(cellCoord.X + Offsets[i].X, cellCoord.Y + Offsets[i].Y));
+		const FIntVector2 neighborCoord(cellCoord.X + Offsets[i].X, cellCoord.Y + Offsets[i].Y); // FIntVector2 no + operator support
+		if (!IsValidGridCoord(neighborCoord)) continue;
 
 		// all cells that are outside of the grid bounds will return null here and not be added
-		TSharedPtr<FMinesweeperCell> cell = GetCell(cellIndex);
+		TSharedPtr<FMinesweeperCell> cell = GetCell(GridCoordToIndex(neighborCoord));
 		if (cell.IsValid())
 		{
 			outCellWidgets.Add(cell.ToSharedRef());
@@ -240,9 +228,12 @@ TArray<TSharedRef<FMinesweeperCell>> UMinesweeperGame::GetNeighborCells(const in
 	return outCellWidgets;
 }
 
-void UMinesweeperGame::OpenCell(TSharedRef<FMinesweeperCell> InCell, const int32 InCellIndex)
+void UMinesweeperGame::OpenCell(TSharedPtr<FMinesweeperCell> InCell, const int32 InCellIndex)
 {
+	if (!CellMap.Contains(InCellIndex) || CellMap[InCellIndex] != InCell) return;
+
 	InCell->bIsOpened = true;
+
 	--NumClosedCells;
 	++NumOpenedCells;
 
@@ -252,14 +243,17 @@ void UMinesweeperGame::OpenCell(TSharedRef<FMinesweeperCell> InCell, const int32
 	}
 }
 
-void UMinesweeperGame::OpenNeighbors(TSharedRef<FMinesweeperCell> InCell, const int32 InCellIndex)
+void UMinesweeperGame::OpenNeighbors(TSharedPtr<FMinesweeperCell> InCell, const int32 InCellIndex)
 {
+	if (!CellMap.Contains(InCellIndex) || CellMap[InCellIndex] != InCell) return;
+
 	TArray<TSharedRef<FMinesweeperCell>> neighborCells = GetNeighborCells(InCellIndex);
 	for (auto cell : neighborCells)
 	{
-		if (!cell->bIsOpened)
+		const int32 cellIndex = FindCellIndex(cell);
+		if (cellIndex > -1 && !cell->bIsOpened)
 		{
-			OpenCell(cell, InCellIndex);
+			OpenCell(cell, cellIndex);
 		}
 	}
 }

@@ -264,8 +264,8 @@ void FMinesweeperStyle::Initialize()
 
 	StyleSet->Set("TransparentBorder", new FSlateColorBrush(FLinearColor::Transparent));
 	
-	StyleSet->Set("ToolbarButton", new IMAGE_PLUGIN_BRUSH("Mine_32x", Icon40x40));
-	StyleSet->Set("ToolbarButton.Small", new IMAGE_PLUGIN_BRUSH("Mine_32x", Icon16x16));
+	StyleSet->Set("ToolbarButton", new IMAGE_PLUGIN_BRUSH("Mine_64x", Icon40x40));
+	StyleSet->Set("ToolbarButton.Small", new IMAGE_PLUGIN_BRUSH("Mine_64x", Icon16x16));
 
 	//StyleSet->Set("Settings", new IMAGE_BRUSH("Editor/Slate/Icons/GeneralTools/Settings_40x", Icon16x16));
 	StyleSet->Set("Settings", new IMAGE_PLUGIN_BRUSH("Settings_40x", Icon16x16));
@@ -274,11 +274,11 @@ void FMinesweeperStyle::Initialize()
 	RoundedPanelColor.A = 0.1f;
 	StyleSet->Set("RoundedPanel", new FSlateRoundedBoxBrush(RoundedPanelColor, 8.0f));
 
-	StyleSet->Set("ClosedCell", new IMAGE_PLUGIN_BRUSH("ClosedCell_32x", Icon32x32));
-	StyleSet->Set("OpenCell", new IMAGE_PLUGIN_BRUSH("OpenCell_32x", Icon32x32));
-	StyleSet->Set("OpenCell.Mine", new IMAGE_PLUGIN_BRUSH("OpenCell_Mine_32x", Icon32x32));
-	StyleSet->Set("Mine", new IMAGE_PLUGIN_BRUSH("Mine_32x", Icon32x32));
-	StyleSet->Set("Flag", new IMAGE_PLUGIN_BRUSH("Flag_32x", Icon32x32));
+	StyleSet->Set("ClosedCell", new IMAGE_PLUGIN_BRUSH("ClosedCell_64x", Icon64x64));
+	StyleSet->Set("OpenCell", new IMAGE_PLUGIN_BRUSH("OpenCell_64x", Icon64x64));
+	StyleSet->Set("OpenCell.Mine", new IMAGE_PLUGIN_BRUSH("OpenCell_Mine_64x", Icon64x64));
+	StyleSet->Set("Mine", new IMAGE_PLUGIN_BRUSH("Mine_64x", Icon64x64));
+	StyleSet->Set("Flag", new IMAGE_PLUGIN_BRUSH("Flag_64x", Icon64x64));
 
 	StyleSet->Set("MrSmile.Alive", new IMAGE_PLUGIN_BRUSH("MrSmile_Alive_64x", Icon64x64));
 	StyleSet->Set("MrSmile.Dead", new IMAGE_PLUGIN_BRUSH("MrSmile_Dead_64x", Icon64x64));

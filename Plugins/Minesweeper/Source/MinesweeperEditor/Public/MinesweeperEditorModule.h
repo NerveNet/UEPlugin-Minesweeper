@@ -74,6 +74,7 @@ private:
     void OpenMinesweeperWindow();
     void CloseMinesweeperWindow(const bool bInForceImmediately = false);
 
+
 public:
     /** Opens the Minesweeper game with the last used window mode. If the Minesweeper window is already open, toggles between standalone and docking tab window modes. */
     void ToggleMinesweeperWindowMode();

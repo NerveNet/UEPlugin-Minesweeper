@@ -6,12 +6,9 @@
 #include "Slate/SMinesweeperGrid.h"
 #include "MinesweeperGame.h"
 #include "MinesweeperGridCanvas.h"
+#include "MinesweeperBlueprintLib.h"
 #include "Editor.h"
 #include "SlateOptMacros.h"
-#include "Widgets/Layout/SWidgetSwitcher.h"
-#include "Widgets/Input/SNumericEntryBox.h"
-#include "Widgets/Input/SEditableTextBox.h"
-#include "Widgets/Text/SRichTextBlock.h"
 #include "Widgets/Images/SImage.h"
 
 
@@ -31,6 +28,7 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 
 
 	Game = TStrongObjectPtr<UMinesweeperGame>(NewObject<UMinesweeperGame>(GetTransientPackage()));
+	SetCellDrawSize(InArgs._CellDrawSize);
 
 
 	// main window widget layout
@@ -78,7 +76,7 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 							.ToolTipText(LOCTEXT("TimeElapsedTooltip", "Elapsed game time in seconds."))
 							[
 								SNew(STextBlock)
-								.Margin(FMargin(0, 1, 0, 0))
+								.Margin(FMargin(0, 0, 0, -2))
 								.Justification(ETextJustify::Center)
 								.Visibility(EVisibility::SelfHitTestInvisible)
 								.TextStyle(FMinesweeperStyle::Get(), "Text.HeaderLarge")
@@ -139,15 +137,6 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 						.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
 						[
 							SNew(SVerticalBox)
-							/*+ SVerticalBox::Slot().AutoHeight()
-							.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-							.Padding(0.0f, 0.0f, 0.0f, 2.0f)
-							[
-								SNew(STextBlock)
-								.Justification(ETextJustify::Center)
-								.TextStyle(FMinesweeperStyle::Get(), "Text.Small")
-								.Text(LOCTEXT("FlagsRemainingLabel", "Flags"))
-							]*/
 							+ SVerticalBox::Slot().AutoHeight()
 							.HAlign(HAlign_Fill).VAlign(VAlign_Center)
 							.Padding(0.0f, 0.0f, 0.0f, 0.0f)
@@ -158,7 +147,7 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 								.ToolTipText(LOCTEXT("FlagsRemainingTooltip", "Number of flags remaining that can be placed."))
 								[
 									SNew(STextBlock)
-									.Margin(FMargin(0, 1, 0, 0))
+									.Margin(FMargin(0, 0, 0, -2))
 									.Justification(ETextJustify::Center)
 									.Visibility(EVisibility::SelfHitTestInvisible)
 									.TextStyle(FMinesweeperStyle::Get(), "Text.HeaderLarge")
@@ -179,10 +168,13 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 			SNew(SOverlay)
 			+ SOverlay::Slot()
 			[
-				SNew(SBorder)[
-				SAssignNew(CellGrid, SMinesweeperGrid, Game)
-				.CellDrawSize(InArgs._CellDrawSize)
-				.UseGridCanvas(InArgs._UseGridCanvas)
+				SNew(SBorder)
+				[
+					SNew(SMinesweeperGrid)
+					.GridCanvasBrush(&GridCanvasBrush)
+					.OnCellLeftClick(this, &SMinesweeper::OnCellLeftClick)
+					.OnCellRightClick(this, &SMinesweeper::OnCellRightClick)
+					.OnHoverCellChanged(this, &SMinesweeper::OnHoverCellChanged)
 				]
 			]
 			+ SOverlay::Slot()
@@ -225,30 +217,8 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 			]
 		]
 	];
-
-	
-	// create "tick" timer
-	ActiveTimerHandle = RegisterActiveTimer(0.0f, FWidgetActiveTimerDelegate::CreateSP(this, &SMinesweeper::UpdateGameTick));
 }
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
-
-
-EActiveTimerReturnType SMinesweeper::UpdateGameTick(double InCurrentTime, float InDeltaTime)
-{
-	/*if (IsGameActive && !IsGamePaused)
-	{
-		GameTime += InDeltaTime;
-
-		if (Settings->UseGridCanvas)
-		{
-			GridCanvas->UpdateResource();
-			GridCanvasBrush.SetResourceObject(GridCanvas.Get());
-			GridCanvasBrush.TintColor = FLinearColor::White;
-		}
-	}*/
-
-	return EActiveTimerReturnType::Continue;
-}
 
 
 bool SMinesweeper::IsGameActive() const
@@ -259,13 +229,13 @@ bool SMinesweeper::IsGameActive() const
 void SMinesweeper::StartNewGame(const FMinesweeperDifficulty& InDifficulty)
 {
 	Game->SetupGame(InDifficulty);
-
-	CellGrid->CreateGridCells();
+	SetGridSize(InDifficulty.GridSize());
 }
 
 void SMinesweeper::RestartGame()
 {
 	Game->RestartGame();
+	GridCanvas->UpdateResource();
 }
 
 void SMinesweeper::PauseGame()
@@ -322,7 +292,7 @@ FText SMinesweeper::GetHighScoreRankText() const
 
 FReply SMinesweeper::OnRestartGameButtonClick()
 {
-	Game->RestartGame();
+	RestartGame();
 
 	return FReply::Handled();
 }
@@ -332,6 +302,96 @@ FReply SMinesweeper::OnGameSetupButtonClick()
 	OnGameSetupClick.ExecuteIfBound();
 
 	return FReply::Handled();
+}
+
+
+void SMinesweeper::SetGridSize(const FIntVector2& InGridSize, const float InNewCellDrawSize)
+{
+	const float cellDrawSize = FMath::Clamp(InNewCellDrawSize > -1.0f ? InNewCellDrawSize : GetCellDrawSize(), 10.0f, 64.0f);
+	FVector2D gridCanvasSize(InGridSize.X * cellDrawSize, InGridSize.Y * cellDrawSize);
+
+	if (!GridCanvas.IsValid())
+	{
+		GridCanvas = TStrongObjectPtr<UMinesweeperGridCanvas>(
+			UMinesweeperBlueprintLib::CreateMinesweeperGridCanvas(GetTransientPackage(), Game.Get(), cellDrawSize)
+		);
+		/*GridCanvas = TStrongObjectPtr<UMinesweeperGridCanvas>(
+			(UMinesweeperGridCanvas*)UCanvasRenderTarget2D::CreateCanvasRenderTarget2D(
+				GetTransientPackage(),
+				UMinesweeperGridCanvas::StaticClass(),
+				gridCanvasSize.X, gridCanvasSize.Y
+			)
+		);*/
+
+		UMinesweeperSettings* settings = UMinesweeperSettings::Get();
+
+		GridCanvas->SetClosedCellTexture(Cast<UTexture2D>(settings->ClosedCellTexture.TryLoad()));
+		GridCanvas->SetOpenCellTexture(Cast<UTexture2D>(settings->OpenCellTexture.TryLoad()));
+		GridCanvas->SetOpenCellMineTexture(Cast<UTexture2D>(settings->OpenCellMineTexture.TryLoad()));
+		GridCanvas->SetMineTexture(Cast<UTexture2D>(settings->MineTexture.TryLoad()));
+		GridCanvas->SetFlagTexture(Cast<UTexture2D>(settings->FlagTexture.TryLoad()));
+		GridCanvas->SetHoverCellTexture(Cast<UTexture2D>(settings->HoverCellTexture.TryLoad()));
+		GridCanvas->SetCellFont((UFont*)(settings->CellFont.TryLoad()));
+
+		GridCanvasBrush.SetResourceObject(GridCanvas.Get());
+		GridCanvasBrush.TintColor = FLinearColor::White;
+	}
+	else
+	{
+		GridCanvas->ResizeTarget(gridCanvasSize.X, gridCanvasSize.Y);
+	}
+
+	GridCanvasBrush.SetImageSize(gridCanvasSize);
+
+	GridCanvas->InitCanvas(Game.Get(), cellDrawSize);
+}
+
+float SMinesweeper::GetCellDrawSize() const
+{
+	return GridCanvas.IsValid() ? GridCanvas->GetCellDrawSize() : UMinesweeperGridCanvas::DefaultCellDrawSize();
+}
+
+void SMinesweeper::SetCellDrawSize(const float InCellDrawSize)
+{
+	// texture needs to be resized when cell draw size is changed
+	SetGridSize(Game->GetDifficulty().GridSize(), InCellDrawSize);
+}
+
+
+void SMinesweeper::OnCellLeftClick(const FVector2D& InGridPosition)
+{
+	if (!GridCanvas.IsValid()) return;
+
+	FIntVector2 cellCoord;
+	GridCanvas->GridPositionToCellCoord(InGridPosition, cellCoord.X, cellCoord.Y);
+
+	Game->TryOpenCell(cellCoord.X, cellCoord.Y);
+
+	GridCanvas->UpdateResource();
+}
+
+void SMinesweeper::OnCellRightClick(const FVector2D& InGridPosition)
+{
+	if (!GridCanvas.IsValid()) return;
+
+	FIntVector2 cellCoord;
+	GridCanvas->GridPositionToCellCoord(InGridPosition, cellCoord.X, cellCoord.Y);
+
+	Game->TryFlagCall(cellCoord.X, cellCoord.Y);
+
+	GridCanvas->UpdateResource();
+}
+
+void SMinesweeper::OnHoverCellChanged(const bool InIsHovered, const FVector2D& InGridPosition)
+{
+	if (!GridCanvas.IsValid()) return;
+
+	if (InIsHovered)
+		GridCanvas->SetHoverCellIndex(GridCanvas->GridPositionToCellIndex(InGridPosition));
+	else
+		GridCanvas->ClearHoverCell();
+
+	GridCanvas->UpdateResource();
 }
 
 

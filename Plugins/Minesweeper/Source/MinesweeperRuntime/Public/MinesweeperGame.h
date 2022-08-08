@@ -66,7 +66,6 @@ public:
 	static const int32 MaxMineCount = 400;
 
 
-	/**  */
 	UFUNCTION(BlueprintCallable, Category = "Minesweeper")
 		void SetupGame(const FMinesweeperDifficulty& InDifficulty);
 
@@ -83,40 +82,55 @@ public:
 		bool TryFlagCall(const int32 CellX, const int32 CellY);
 
 
-	/**  */
 	UPROPERTY(BlueprintAssignable, Category = "Minesweeper")
 		FMinesweeperGameOverDelegate OnGameOver;
-	/**  */
+
 	//UPROPERTY(BlueprintAssignable, Category = "Minesweeper")
 		//FMinesweeperGameOverDelegatedd OnGameOveredd;
 	FMinesweeperGameOverDelegated OnGameOvered;
 
 
-	inline const FMinesweeperDifficulty& GetDifficulty() const { return Difficulty; }
+	UFUNCTION(BlueprintPure, Category = "Minesweeper")
+		FORCEINLINE FMinesweeperDifficulty GetDifficulty() const { return Difficulty; }
 
-	inline bool IsGameActive() const { return IsActive; }
-	inline bool IsGamePaused() const { return IsPaused; }
 
-	/**  */
+	UFUNCTION(BlueprintPure, Category = "Minesweeper")
+		FORCEINLINE bool IsGameActive() const { return IsActive; }
+
+	UFUNCTION(BlueprintPure, Category = "Minesweeper")
+		FORCEINLINE bool IsGamePaused() const { return IsPaused; }
+
+
 	UFUNCTION(BlueprintCallable, Category = "Minesweeper")
 		FORCEINLINE void PauseGame() { if (IsActive) { IsPaused = true; } }
 
-	/**  */
 	UFUNCTION(BlueprintCallable, Category = "Minesweeper")
 		FORCEINLINE void ResumeGame() { IsPaused = false; }
 
-	/**  */
+
 	UFUNCTION(BlueprintPure, Category = "Minesweeper")
 		FORCEINLINE float GetGameTime() const { return GameTime; }
 
-	inline bool IsGameActiveAndRunning() const { return IsActive && !IsPaused; }
-	inline bool HasGameStarted() const { return IsActive && GameTime > 0.0f; }
-	inline bool IsGameOver() const { return !IsActive && GameTime > 0.0f; }
-	inline bool HasWon() const { return GameTime > 0.0f && NumClosedCells == Difficulty.MineCount; }
 
-	inline int32 TotalCellCount() const { return Difficulty.TotalCells(); }
+	UFUNCTION(BlueprintPure, Category = "Minesweeper")
+		FORCEINLINE bool IsGameActiveAndRunning() const { return IsActive && !IsPaused; }
 
-	inline int32 GetFlagsRemaining() const { return FlagsRemaining; }
+	UFUNCTION(BlueprintPure, Category = "Minesweeper")
+		FORCEINLINE bool HasGameStarted() const { return IsActive && GameTime > 0.0f; }
+
+	UFUNCTION(BlueprintPure, Category = "Minesweeper")
+		FORCEINLINE bool IsGameOver() const { return !IsActive && GameTime > 0.0f; }
+
+	UFUNCTION(BlueprintPure, Category = "Minesweeper")
+		FORCEINLINE bool HasWon() const { return GameTime > 0.0f && NumClosedCells == Difficulty.MineCount; }
+
+
+	UFUNCTION(BlueprintPure, Category = "Minesweeper")
+		FORCEINLINE int32 TotalCellCount() const { return Difficulty.TotalCells(); }
+
+
+	UFUNCTION(BlueprintPure, Category = "Minesweeper")
+		FORCEINLINE int32 GetFlagsRemaining() const { return FlagsRemaining; }
 
 
 protected:
@@ -153,12 +167,14 @@ public:
 	int32 GridCoordToIndex(const FIntVector2& InCellCoord) const;
 	FIntVector2 GridIndexToCoord(const int32 InCellIndex) const;
 
+	int32 FindCellIndex(TSharedPtr<FMinesweeperCell> InCell) const;
+
 	TSharedPtr<FMinesweeperCell> GetCell(const int32 InCellIndex);
 	TArray<TSharedRef<FMinesweeperCell>> GetNeighborCells(const int32 InCellIndex);
 
 private:
-	void OpenCell(TSharedRef<FMinesweeperCell> InCell, const int32 InCellIndex);
-	void OpenNeighbors(TSharedRef<FMinesweeperCell> InCell, const int32 InCellIndex);
+	void OpenCell(TSharedPtr<FMinesweeperCell> InCell, const int32 InCellIndex);
+	void OpenNeighbors(TSharedPtr<FMinesweeperCell> InCell, const int32 InCellIndex);
 
 public:
 	void ForEachCell(TFunctionRef<void(TSharedRef<FMinesweeperCell> InCell, const int32 InCellIndex, const FVector2D InCellCoord)> InFunc);

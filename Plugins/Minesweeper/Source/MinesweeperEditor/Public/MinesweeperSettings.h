@@ -52,6 +52,7 @@ class UMinesweeperSettings : public UDeveloperSettings
 	
 public:
 	//~ Begin UObject Overrides
+	virtual void PostInitProperties() override;
 #if WITH_EDITOR
 	virtual bool CanEditChange(const FProperty* InProperty) const override;
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
@@ -79,6 +80,8 @@ public:
 	/** Event triggered when any setting is changed. */
 	FOnFinishedChangingProperties OnSettingsChanged;
 
+	FOnFinishedChangingProperties OnCellDrawSizeChanged;
+
 
 	/// ************************************************** SETTINGS **************************************************
 	///
@@ -94,22 +97,52 @@ public:
 
 	UPROPERTY(Config, EditAnywhere, Category = "General", Meta = (
 			DisplayName = "Player Name",
-			Tooltip = "The current saved name that was last entered for the game."))
+			Tooltip = "The last saved name that was entered for the game."))
 		FString LastPlayerName;
 
 	UPROPERTY(Config, EditAnywhere, Category = "General", Meta = (
 			DisplayName = "Difficulty Settings",
-			Tooltip = "The current saved difficulty settings that were last entered for the game."))
+			Tooltip = "The last saved difficulty settings that were entered for the game."))
 		FMinesweeperDifficulty LastDifficulty;
 
 
-	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (UIMin = 10.0, ClampMin = 10.0, UIMax = 40.0, ClampMax = 40.0,
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (UIMin = 10.0, ClampMin = 10.0, UIMax = 64.0, ClampMax = 64.0,
 			DisplayName = "Cell Draw Size",
-			Tooltip = "The actual size of each cell on the screen in pixels."))
+			Tooltip = "The size of each cell on the screen in pixels."))
 		float CellDrawSize;
+
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Texture2D"))
+		FSoftObjectPath ClosedCellTexture;
+
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Texture2D"))
+		FSoftObjectPath OpenCellTexture;
+
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Texture2D"))
+		FSoftObjectPath OpenCellMineTexture;
+
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Texture2D"))
+		FSoftObjectPath MineTexture;
+
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Texture2D"))
+		FSoftObjectPath FlagTexture;
+
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Texture2D"))
+		FSoftObjectPath HoverCellTexture;
+
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Font"))
+		FSoftObjectPath CellFont;
+
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General")
+		FLinearColor HoverCellValidColor;
+
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General")
+		FLinearColor HoverCellInvalidColor;
 
 
 	UPROPERTY(Config/*, EditAnywhere, Category = "General"*/) TArray<FMinesweeperHighScore> HighScores;
+
+	/** Used for debugging to add new high scores. */
+	UPROPERTY(Config/*, EditAnywhere, Category = "General"*/) bool AddNewHighScore;
 
 };
 
