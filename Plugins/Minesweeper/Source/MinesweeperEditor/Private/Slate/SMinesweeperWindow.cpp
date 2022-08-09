@@ -36,8 +36,6 @@ void SMinesweeperWindow::Construct(const FArguments& InArgs)
 
 
 	// main window widget layout
-	const int32 difficultyButtonWidth = 100;
-
 	ChildSlot
 	[
 		SNew(SWidgetSwitcher)
@@ -73,30 +71,7 @@ void SMinesweeperWindow::Construct(const FArguments& InArgs)
 				.HAlign(HAlign_Center).VAlign(VAlign_Center)
 				.Padding(0.0f, 3.0f, 0.0f, 0.0f)
 				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot().AutoWidth()
-					.HAlign(HAlign_Center).VAlign(VAlign_Center)
-					[
-						SNew(SImage).Image(FMinesweeperStyle::GetBrush("Mine")).DesiredSizeOverride(FVector2D(32.0f))
-					]
-					+ SHorizontalBox::Slot().AutoWidth()
-					.HAlign(HAlign_Center).VAlign(VAlign_Center)
-					.Padding(22.0f, 0.0f, 18.0f, 0.0f)
-					[
-						SNew(SBox).WidthOverride(230)
-						.HAlign(HAlign_Left).VAlign(VAlign_Center)
-						[
-							SNew(SRichTextBlock)
-							.DecoratorStyleSet(&FMinesweeperStyle::Get())
-							.TextStyle(FMinesweeperStyle::Get(), "Text.Title")
-							.Text(this, &SMinesweeperWindow::GetTitleText)
-						]
-					]
-					+ SHorizontalBox::Slot().AutoWidth()
-					.HAlign(HAlign_Center).VAlign(VAlign_Center)
-					[
-						SNew(SImage).Image(FMinesweeperStyle::GetBrush("Mine")).DesiredSizeOverride(FVector2D(32.0f))
-					]
+					CreateTitleRow()
 				]
 
 				// NEW GAME SETUP / HIGH SCORES BUTTONS
@@ -104,46 +79,7 @@ void SMinesweeperWindow::Construct(const FArguments& InArgs)
 				.HAlign(HAlign_Fill).VAlign(VAlign_Center)
 				.Padding(5.0f, 10.0f, 5.0f, 0.0f)
 				[
-					SNew(SHorizontalBox)
-					+ SHorizontalBox::Slot()
-					.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-					.Padding(0, 0, 1, 0)
-					[
-						SNew(SBorder).BorderImage(FMinesweeperStyle::GetBrush("RoundedPanel"))
-						[
-							SNew(SCheckBox)
-							.HAlign(HAlign_Center)
-							.Style(FEditorStyle::Get(), "ToggleButtonCheckbox")
-							.BorderBackgroundColor(FLinearColor(0.6f, 0.6f, 0.6f, 1.0f))
-							.IsChecked_Lambda([&]() { return ActiveGameSetupPanel == 0 ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
-							.OnCheckStateChanged_Lambda([&](ECheckBoxState NewCheckState) { if (NewCheckState == ECheckBoxState::Checked) ActiveGameSetupPanel = 0; })
-							[
-								SNew(STextBlock)
-								.Margin(FMargin(0, 2))
-								.TextStyle(FMinesweeperStyle::Get(), "Text.Normal")
-								.Text(LOCTEXT("PlayLabel", "Play"))
-							]
-						]
-					]
-					+ SHorizontalBox::Slot()
-					.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-					.Padding(1, 0, 0, 0)
-					[
-						SNew(SBorder).BorderImage(FMinesweeperStyle::GetBrush("RoundedPanel"))
-						[
-							SNew(SCheckBox)
-							.HAlign(HAlign_Center)
-							.Style(FEditorStyle::Get(), "ToggleButtonCheckbox")
-							.IsChecked_Lambda([&]() { return ActiveGameSetupPanel == 1 ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
-							.OnCheckStateChanged_Lambda([&](ECheckBoxState NewCheckState) { if (NewCheckState == ECheckBoxState::Checked) ActiveGameSetupPanel = 1; })
-							[
-								SNew(STextBlock)
-								.Margin(FMargin(0, 2))
-								.TextStyle(FMinesweeperStyle::Get(), "Text.Normal")
-								.Text(LOCTEXT("HighScoresLabel", "High Scores"))
-							]
-						]
-					]
+					CreatePanelSwitchRadioButtonsRow()
 				]
 				
 				+ SVerticalBox::Slot().AutoHeight()
@@ -167,238 +103,7 @@ void SMinesweeperWindow::Construct(const FArguments& InArgs)
 							.HAlign(HAlign_Fill).VAlign(VAlign_Center)
 							.Padding(10.0f)
 							[
-								SNew(SVerticalBox)
-
-								// GRID SETTINGS PANEL
-								+ SVerticalBox::Slot().AutoHeight()
-								.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-								.Padding(5.0f, 0.0f, 5.0f, 0.0f)
-								[
-									SNew(SBox).WidthOverride(300)
-									[
-										SNew(SVerticalBox)
-
-										// USERNAME
-										+ SVerticalBox::Slot().AutoHeight()
-										.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-										.Padding(10.0f, 0.0f, 10.0f, 10.0f)
-										[
-											SNew(SHorizontalBox)
-											+ SHorizontalBox::Slot().FillWidth(0.5f).VAlign(VAlign_Center)
-											[
-												SNew(STextBlock)
-												.TextStyle(FMinesweeperStyle::Get(), "Text.Normal")
-												.Text(LOCTEXT("PlayerNameLabel", "Player Name:"))
-											]
-											+ SHorizontalBox::Slot().FillWidth(0.5f).HAlign(HAlign_Fill).VAlign(VAlign_Center)
-											[
-												SAssignNew(NameTextBox, SEditableTextBox)
-												//.Text(FText::FromString(Settings->LastPlayerName))
-												.Text(this, &SMinesweeperWindow::GetPlayerName)
-												.OnTextChanged(this, &SMinesweeperWindow::OnPlayerNameChanged)
-												.OnTextCommitted(this, &SMinesweeperWindow::OnPlayerNameCommitted)
-											]
-										]
-
-										// NEW GAME GRID WIDTH
-										+ SVerticalBox::Slot().AutoHeight()
-										.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-										.Padding(10.0f, 0.0f, 10.0f, 5.0f)
-										[
-											SNew(SHorizontalBox)
-											+ SHorizontalBox::Slot().FillWidth(0.5f).VAlign(VAlign_Center)
-											[
-												SNew(STextBlock)
-												.TextStyle(FMinesweeperStyle::Get(), "Text.Normal")
-												.Text(LOCTEXT("NewGridWidthLabel", "Width:"))
-											]
-											+ SHorizontalBox::Slot().FillWidth(0.5f).HAlign(HAlign_Fill).VAlign(VAlign_Center)
-											[
-												SNew(SNumericEntryBox<int32>)
-												.AllowSpin(true)
-												.MinSliderValue(UMinesweeperGame::MinGridSize).MaxSliderValue(UMinesweeperGame::MaxGridSize)
-												.MinValue(UMinesweeperGame::MinGridSize).MaxValue(UMinesweeperGame::MaxGridSize)
-												.Value_Lambda([&] { return Settings->LastDifficulty.Width; })
-												.OnValueChanged_Lambda([&](int32 InNewValue)
-													{
-														Settings->LastDifficulty.Width = InNewValue;
-														MaxMineCount = FMath::FloorToInt32(Settings->LastDifficulty.TotalCells() * 0.25f);
-													})
-											]
-										]
-
-										// NEW GAME GRID HEIGHT
-										+ SVerticalBox::Slot().AutoHeight()
-										.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-										.Padding(10.0f, 0.0f, 10.0f, 5.0f)
-										[
-											SNew(SHorizontalBox)
-											+ SHorizontalBox::Slot().FillWidth(0.5f).VAlign(VAlign_Center)
-											[
-												SNew(STextBlock)
-												.TextStyle(FMinesweeperStyle::Get(), "Text.Normal")
-												.Text(LOCTEXT("NewGridHeightLabel", "Height:"))
-											]
-											+ SHorizontalBox::Slot().FillWidth(0.5f).HAlign(HAlign_Fill).VAlign(VAlign_Center)
-											[
-												SNew(SNumericEntryBox<int32>)
-												.AllowSpin(true)
-												.MinSliderValue(UMinesweeperGame::MinGridSize).MaxSliderValue(UMinesweeperGame::MaxGridSize)
-												.MinValue(UMinesweeperGame::MinGridSize).MaxValue(UMinesweeperGame::MaxGridSize)
-												.Value_Lambda([&] { return Settings->LastDifficulty.Height; })
-												.OnValueChanged_Lambda([&](int32 InNewValue)
-													{
-														Settings->LastDifficulty.Height = InNewValue;
-														MaxMineCount = FMath::FloorToInt32(Settings->LastDifficulty.TotalCells() * 0.25f);
-													})
-											]
-										]
-
-										// NEW GAME GRID MINE COUNT
-										+ SVerticalBox::Slot().AutoHeight()
-										.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-										.Padding(10.0f, 0.0f, 10.0f, 5.0f)
-										[
-											SNew(SHorizontalBox)
-											+ SHorizontalBox::Slot().FillWidth(0.5f).VAlign(VAlign_Center)
-											[
-												SNew(STextBlock)
-												.TextStyle(FMinesweeperStyle::Get(), "Text.Normal")
-												.Text(LOCTEXT("NewGridMineCountLabel", "Mines:"))
-											]
-											+ SHorizontalBox::Slot().FillWidth(0.5f).HAlign(HAlign_Fill).VAlign(VAlign_Center)
-											[
-												SNew(SNumericEntryBox<int32>)
-												.AllowSpin(true)
-												.MinSliderValue(UMinesweeperGame::MinMineCount)
-												.MaxSliderValue_Lambda([&]() { return MaxMineCount; })
-												.MinValue(UMinesweeperGame::MinMineCount)
-												.MaxValue_Lambda([&]() { return MaxMineCount; })
-												.Value_Lambda([&] { return Settings->LastDifficulty.MineCount; })
-												.OnValueChanged_Lambda([&](int32 InNewValue) { Settings->LastDifficulty.MineCount = InNewValue; })
-											]
-										]
-									]
-								]
-
-								// DIFFICULTY SETTING
-								+ SVerticalBox::Slot().AutoHeight()
-								.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-								.Padding(0.0f, 5.0f, 0.0f, 10.0f)
-								[
-									SNew(SHorizontalBox)
-									+ SHorizontalBox::Slot().FillWidth(1.0f)
-									.HAlign(HAlign_Center).VAlign(VAlign_Center)
-									.Padding(1.0f, 0.0f, 1.0f, 0.0f)
-									[
-										SNew(SBox).WidthOverride(difficultyButtonWidth)
-										.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-										[
-											SNew(SButton)
-											.HAlign(HAlign_Center).VAlign(VAlign_Center)
-											.ButtonColorAndOpacity(this, &SMinesweeperWindow::GetDifficultyButtonColor, 0)
-											.OnClicked(this, &SMinesweeperWindow::OnDifficultyClick, 0)
-											[
-												SNew(STextBlock)
-												.TextStyle(FMinesweeperStyle::Get(), "Text.Small")
-												.Text(LOCTEXT("BeginnerDifficultyLabel", "Beginner"))
-											]
-										]
-									]
-									+ SHorizontalBox::Slot().FillWidth(1.0f)
-									.HAlign(HAlign_Center).VAlign(VAlign_Center)
-									.Padding(1.0f, 0.0f, 1.0f, 0.0f)
-									[
-										SNew(SBox).WidthOverride(difficultyButtonWidth)
-										.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-										[
-											SNew(SButton)
-											.HAlign(HAlign_Center).VAlign(VAlign_Center)
-											.ButtonColorAndOpacity(this, &SMinesweeperWindow::GetDifficultyButtonColor, 1)
-											.OnClicked(this, &SMinesweeperWindow::OnDifficultyClick, 1)
-											[
-												SNew(STextBlock)
-												.TextStyle(FMinesweeperStyle::Get(), "Text.Small")
-												.Text(LOCTEXT("IntermediateDifficultyLabel", "Intermediate"))
-											]
-										]
-									]
-									+ SHorizontalBox::Slot().FillWidth(1.0f)
-									.HAlign(HAlign_Center).VAlign(VAlign_Center)
-									.Padding(1.0f, 0.0f, 1.0f, 0.0f)
-									[
-										SNew(SBox).WidthOverride(difficultyButtonWidth)
-										.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-										[
-											SNew(SButton)
-											.HAlign(HAlign_Center).VAlign(VAlign_Center)
-											.ButtonColorAndOpacity(this, &SMinesweeperWindow::GetDifficultyButtonColor, 2)
-											.OnClicked(this, &SMinesweeperWindow::OnDifficultyClick, 2)
-											[
-												SNew(STextBlock)
-												.TextStyle(FMinesweeperStyle::Get(), "Text.Small")
-												.Text(LOCTEXT("ExpertDifficultyLabel", "Expert"))
-											]
-										]
-									]
-								]
-
-								// START NEW GAME BUTTON
-								+ SVerticalBox::Slot().AutoHeight()
-								.HAlign(HAlign_Center).VAlign(VAlign_Center)
-								.Padding(0.0f, 10.0f, 0.0f, 0.0f)
-								[
-									SNew(SHorizontalBox)
-									+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 10.0f, 0.0f)
-									[
-										SNew(SBox).WidthOverride(30)
-										.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-										[
-											SNew(SButton).HAlign(HAlign_Fill)
-											.HAlign(HAlign_Center).VAlign(VAlign_Center)
-											.ToolTipText(LOCTEXT("SettingsButtonTooltip", "Open the Minesweeper editor settings window."))
-											.OnClicked(this, &SMinesweeperWindow::OnSettingsClick)
-											[
-												SNew(SImage).Image(FMinesweeperStyle::GetBrush("Settings")).DesiredSizeOverride(FVector2D(16.0f))
-											]
-										]
-									]
-									+ SHorizontalBox::Slot().AutoWidth()
-									[
-										SNew(SBox).WidthOverride(180)
-										.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-										[
-											SNew(SButton).HAlign(HAlign_Fill)
-											.HAlign(HAlign_Center).VAlign(VAlign_Center)
-											.OnClicked(this, &SMinesweeperWindow::OnStartNewGameClick)
-											[
-												SNew(STextBlock)
-												.TextStyle(FMinesweeperStyle::Get(), "Text.Normal")
-												.Text(LOCTEXT("StartNewGameLabel", "Start New Game"))
-											]
-										]
-									]
-								]
-
-								// CONTINUE GAME BUTTON
-								+ SVerticalBox::Slot().AutoHeight()
-								.HAlign(HAlign_Center).VAlign(VAlign_Center)
-								.Padding(0.0f, 10.0f, 0.0f, 0.0f)
-								[
-									SNew(SBox).WidthOverride(180)
-									.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-									.Visibility_Lambda([&]() { return GameWidget->IsGameActive() ? EVisibility::Visible : EVisibility::Collapsed; })
-									[
-										SNew(SButton).HAlign(HAlign_Fill)
-										.HAlign(HAlign_Center).VAlign(VAlign_Center)
-										.OnClicked(this, &SMinesweeperWindow::OnContinueGameClick)
-										[
-											SNew(STextBlock)
-											.TextStyle(FMinesweeperStyle::Get(), "Text.Normal")
-											.Text(LOCTEXT("ContinueGameLabel", "Continue Game"))
-										]
-									]
-								]
+								ConstructGameSettingsPanel()
 							]
 						]
 
@@ -436,6 +141,312 @@ void SMinesweeperWindow::Construct(const FArguments& InArgs)
 	FTimerHandle titleAnimTimerHandle;
 	GEditor->GetTimerManager()->SetTimer(titleAnimTimerHandle, [&]() { if (++TitleTextAnimIndex > 600) TitleTextAnimIndex = 0; }, 0.07f, true);
 }
+
+
+TSharedRef<SHorizontalBox> SMinesweeperWindow::CreateTitleRow()
+{
+	return 
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot().AutoWidth()
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		[
+			SNew(SImage).Image(FMinesweeperStyle::GetBrush("Mine")).DesiredSizeOverride(FVector2D(32.0f))
+		]
+		+ SHorizontalBox::Slot().AutoWidth()
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		.Padding(22.0f, 0.0f, 18.0f, 0.0f)
+		[
+			SNew(SBox).WidthOverride(230)
+			.HAlign(HAlign_Left).VAlign(VAlign_Center)
+			[
+				SNew(SRichTextBlock)
+				.DecoratorStyleSet(&FMinesweeperStyle::Get())
+				.TextStyle(FMinesweeperStyle::Get(), "Text.Title")
+				.Text(this, &SMinesweeperWindow::GetTitleText)
+			]
+		]
+		+ SHorizontalBox::Slot().AutoWidth()
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		[
+			SNew(SImage).Image(FMinesweeperStyle::GetBrush("Mine")).DesiredSizeOverride(FVector2D(32.0f))
+		];
+}
+
+TSharedRef<SHorizontalBox> SMinesweeperWindow::CreatePanelSwitchRadioButtonsRow()
+{
+	return 
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot()
+		.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+		.Padding(0, 0, 1, 0)
+		[
+			SNew(SBorder).BorderImage(FMinesweeperStyle::GetBrush("RoundedPanel"))
+			[
+				SNew(SCheckBox)
+				.HAlign(HAlign_Center)
+				.Style(FEditorStyle::Get(), "ToggleButtonCheckbox")
+				.BorderBackgroundColor(FLinearColor(0.6f, 0.6f, 0.6f, 1.0f))
+				.IsChecked_Lambda([&]() { return ActiveGameSetupPanel == 0 ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
+				.OnCheckStateChanged_Lambda([&](ECheckBoxState NewCheckState) { if (NewCheckState == ECheckBoxState::Checked) ActiveGameSetupPanel = 0; })
+				[
+					SNew(STextBlock)
+					.Margin(FMargin(0, 2))
+					.TextStyle(FMinesweeperStyle::Get(), "Text.Normal")
+					.Text(LOCTEXT("PlayLabel", "Play"))
+				]
+			]
+		]
+		+ SHorizontalBox::Slot()
+		.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+		.Padding(1, 0, 0, 0)
+		[
+			SNew(SBorder).BorderImage(FMinesweeperStyle::GetBrush("RoundedPanel"))
+			[
+				SNew(SCheckBox)
+				.HAlign(HAlign_Center)
+				.Style(FEditorStyle::Get(), "ToggleButtonCheckbox")
+				.IsChecked_Lambda([&]() { return ActiveGameSetupPanel == 1 ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
+				.OnCheckStateChanged_Lambda([&](ECheckBoxState NewCheckState) { if (NewCheckState == ECheckBoxState::Checked) ActiveGameSetupPanel = 1; })
+				[
+					SNew(STextBlock)
+					.Margin(FMargin(0, 2))
+					.TextStyle(FMinesweeperStyle::Get(), "Text.Normal")
+					.Text(LOCTEXT("HighScoresLabel", "High Scores"))
+				]
+			]
+		];
+}
+
+TSharedRef<SVerticalBox> SMinesweeperWindow::ConstructGameSettingsPanel()
+{
+	return 
+		SNew(SVerticalBox)
+		// GRID SETTINGS PANEL
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+		.Padding(5.0f, 0.0f, 5.0f, 0.0f)
+		[
+			SNew(SBox).WidthOverride(300)
+			[
+				ConstructNewGameSettingsPanel()
+			]
+		]
+		// DIFFICULTY SETTING
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+		.Padding(0.0f, 5.0f, 0.0f, 10.0f)
+		[
+			ConstructDifficultyPresetButtonsRow()
+		]
+		// START NEW GAME BUTTON
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		.Padding(0.0f, 10.0f, 0.0f, 0.0f)
+		[
+			SNew(SHorizontalBox)
+			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 10.0f, 0.0f)
+			[
+				SNew(SBox).WidthOverride(30)
+				.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+				[
+					SNew(SButton).HAlign(HAlign_Fill)
+					.HAlign(HAlign_Center).VAlign(VAlign_Center)
+					.ToolTipText(LOCTEXT("SettingsButtonTooltip", "Open the Minesweeper editor settings window."))
+					.OnClicked(this, &SMinesweeperWindow::OnSettingsClick)
+					[
+						SNew(SImage).Image(FMinesweeperStyle::GetBrush("Settings")).DesiredSizeOverride(FVector2D(16.0f))
+					]
+				]
+			]
+			+ SHorizontalBox::Slot().AutoWidth()
+			[
+				SNew(SBox).WidthOverride(180)
+				.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+				[
+					SNew(SButton).HAlign(HAlign_Fill)
+					.HAlign(HAlign_Center).VAlign(VAlign_Center)
+					.OnClicked(this, &SMinesweeperWindow::OnStartNewGameClick)
+					[
+						SNew(STextBlock)
+						.TextStyle(FMinesweeperStyle::Get(), "Text.Normal")
+						.Text(LOCTEXT("StartNewGameLabel", "Start New Game"))
+					]
+				]
+			]
+		]
+		// CONTINUE GAME BUTTON
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		.Padding(0.0f, 10.0f, 0.0f, 0.0f)
+		[
+			SNew(SBox).WidthOverride(180)
+			.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+			.Visibility_Lambda([&]() { return GameWidget->IsGameActive() ? EVisibility::Visible : EVisibility::Collapsed; })
+			[
+				SNew(SButton).HAlign(HAlign_Fill)
+				.HAlign(HAlign_Center).VAlign(VAlign_Center)
+				.OnClicked(this, &SMinesweeperWindow::OnContinueGameClick)
+				[
+					SNew(STextBlock)
+					.TextStyle(FMinesweeperStyle::Get(), "Text.Normal")
+					.Text(LOCTEXT("ContinueGameLabel", "Continue Game"))
+				]
+			]
+		];
+}
+
+TSharedRef<SHorizontalBox> SMinesweeperWindow::ConstructGameSettingsRow(const FText& InLabelText, TSharedRef<SWidget> InContent)
+{
+	return 
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot().FillWidth(0.5f).VAlign(VAlign_Center)
+		[
+			SNew(STextBlock)
+			.TextStyle(FMinesweeperStyle::Get(), "Text.Normal")
+			.Text(InLabelText)
+		]
+		+ SHorizontalBox::Slot().FillWidth(0.5f).HAlign(HAlign_Fill).VAlign(VAlign_Center)
+		[
+			InContent
+		];
+}
+
+TSharedRef<SVerticalBox> SMinesweeperWindow::ConstructNewGameSettingsPanel()
+{
+	return
+		SNew(SVerticalBox)
+		// USERNAME
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+		.Padding(10.0f, 0.0f, 10.0f, 10.0f)
+		[
+			ConstructGameSettingsRow(
+				LOCTEXT("PlayerNameLabel", "Player Name:"),
+				SAssignNew(NameTextBox, SEditableTextBox)
+				//.Text(FText::FromString(Settings->LastPlayerName))
+				.Text(this, &SMinesweeperWindow::GetPlayerName)
+				.OnTextChanged(this, &SMinesweeperWindow::OnPlayerNameChanged)
+				.OnTextCommitted(this, &SMinesweeperWindow::OnPlayerNameCommitted)
+			)
+		]
+		// NEW GAME GRID WIDTH
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+		.Padding(10.0f, 0.0f, 10.0f, 5.0f)
+		[
+			ConstructGameSettingsRow(
+				LOCTEXT("NewGridWidthLabel", "Width:"),
+				SNew(SNumericEntryBox<int32>)
+				.AllowSpin(true)
+				.MinSliderValue(UMinesweeperGame::MinGridSize).MaxSliderValue(UMinesweeperGame::MaxGridSize)
+				.MinValue(UMinesweeperGame::MinGridSize).MaxValue(UMinesweeperGame::MaxGridSize)
+				.Value_Lambda([&] { return Settings->LastDifficulty.Width; })
+				.OnValueChanged_Lambda([&](int32 InNewValue)
+					{
+						Settings->LastDifficulty.Width = InNewValue;
+						MaxMineCount = FMath::FloorToInt32(Settings->LastDifficulty.TotalCells() * 0.25f);
+					})
+			)
+		]
+		// NEW GAME GRID HEIGHT
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+		.Padding(10.0f, 0.0f, 10.0f, 5.0f)
+		[
+			ConstructGameSettingsRow(
+				LOCTEXT("NewGridHeightLabel", "Height:"), 
+				SNew(SNumericEntryBox<int32>)
+				.AllowSpin(true)
+				.MinSliderValue(UMinesweeperGame::MinGridSize).MaxSliderValue(UMinesweeperGame::MaxGridSize)
+				.MinValue(UMinesweeperGame::MinGridSize).MaxValue(UMinesweeperGame::MaxGridSize)
+				.Value_Lambda([&] { return Settings->LastDifficulty.Height; })
+				.OnValueChanged_Lambda([&](int32 InNewValue)
+					{
+						Settings->LastDifficulty.Height = InNewValue;
+						MaxMineCount = FMath::FloorToInt32(Settings->LastDifficulty.TotalCells() * 0.25f);
+					})
+			)
+		]
+		// NEW GAME GRID MINE COUNT
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+		.Padding(10.0f, 0.0f, 10.0f, 5.0f)
+		[
+			ConstructGameSettingsRow(
+				LOCTEXT("NewGridMineCountLabel", "Mines:"), 
+				SNew(SNumericEntryBox<int32>)
+				.AllowSpin(true)
+				.MinSliderValue(UMinesweeperGame::MinMineCount)
+				.MaxSliderValue_Lambda([&]() { return MaxMineCount; })
+				.MinValue(UMinesweeperGame::MinMineCount)
+				.MaxValue_Lambda([&]() { return MaxMineCount; })
+				.Value_Lambda([&] { return Settings->LastDifficulty.MineCount; })
+				.OnValueChanged_Lambda([&](int32 InNewValue) { Settings->LastDifficulty.MineCount = InNewValue; })
+			)
+		];
+}
+
+TSharedRef<SHorizontalBox> SMinesweeperWindow::ConstructDifficultyPresetButtonsRow()
+{
+	const int32 difficultyButtonWidth = 100;
+	const FMargin slotPadding(1.0f, 0.0f, 1.0f, 0.0f);
+	return 
+		SNew(SHorizontalBox)
+		+ SHorizontalBox::Slot().FillWidth(1.0f)
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		.Padding(slotPadding)
+		[
+			SNew(SBox).WidthOverride(difficultyButtonWidth)
+			.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+			[
+				SNew(SButton)
+				.HAlign(HAlign_Center).VAlign(VAlign_Center)
+				.ButtonColorAndOpacity(this, &SMinesweeperWindow::GetDifficultyButtonColor, 0)
+				.OnClicked(this, &SMinesweeperWindow::OnDifficultyClick, 0)
+				[
+					SNew(STextBlock)
+					.TextStyle(FMinesweeperStyle::Get(), "Text.Small")
+					.Text(LOCTEXT("BeginnerDifficultyLabel", "Beginner"))
+				]
+			]
+		]
+		+ SHorizontalBox::Slot().FillWidth(1.0f)
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		.Padding(slotPadding)
+		[
+			SNew(SBox).WidthOverride(difficultyButtonWidth)
+			.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+			[
+				SNew(SButton)
+				.HAlign(HAlign_Center).VAlign(VAlign_Center)
+				.ButtonColorAndOpacity(this, &SMinesweeperWindow::GetDifficultyButtonColor, 1)
+				.OnClicked(this, &SMinesweeperWindow::OnDifficultyClick, 1)
+				[
+					SNew(STextBlock)
+					.TextStyle(FMinesweeperStyle::Get(), "Text.Small")
+					.Text(LOCTEXT("IntermediateDifficultyLabel", "Intermediate"))
+				]
+			]
+		]
+		+ SHorizontalBox::Slot().FillWidth(1.0f)
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		.Padding(slotPadding)
+		[
+			SNew(SBox).WidthOverride(difficultyButtonWidth)
+			.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+			[
+				SNew(SButton)
+				.HAlign(HAlign_Center).VAlign(VAlign_Center)
+				.ButtonColorAndOpacity(this, &SMinesweeperWindow::GetDifficultyButtonColor, 2)
+				.OnClicked(this, &SMinesweeperWindow::OnDifficultyClick, 2)
+				[
+					SNew(STextBlock)
+					.TextStyle(FMinesweeperStyle::Get(), "Text.Small")
+					.Text(LOCTEXT("ExpertDifficultyLabel", "Expert"))
+				]
+			]
+		];
+}
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 
@@ -450,6 +461,11 @@ void SMinesweeperWindow::OnCellDrawSizeChanged(const FPropertyChangedEvent& InPr
 	GEditor->GetTimerManager()->SetTimer(CellDrawResizeTimerHandle, [&]() { CellDrawResizeTimerHandle.Invalidate(); }, 0.0f, false, 1.0f);
 }
 
+
+FText SMinesweeperWindow::GetPlayerName() const
+{
+	return FText::FromString(Settings->LastPlayerName);
+}
 
 FString SanitizePlayerName(const FString InName)
 {
@@ -470,11 +486,6 @@ FString SanitizePlayerName(const FString InName)
 	}
 
 	return outName;
-}
-
-FText SMinesweeperWindow::GetPlayerName() const
-{
-	return FText::FromString(Settings->LastPlayerName);
 }
 
 void SMinesweeperWindow::OnPlayerNameChanged(const FText& NewText)

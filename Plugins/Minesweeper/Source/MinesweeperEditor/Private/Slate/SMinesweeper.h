@@ -4,6 +4,8 @@
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 
+class SHorizontalBox;
+class SVerticalBox;
 class UMinesweeperGame;
 class UMinesweeperGridCanvas;
 class SMinesweeperGrid;
@@ -37,8 +39,14 @@ public:
 
 
 	void Construct(const FArguments& InArgs);
+private:
+	TSharedRef<SHorizontalBox> ConstructHeaderRow(TAttribute<FText> InPlayerName);
+	TSharedRef<SVerticalBox> ConstructPlayerNameAndGameTimePanel(TAttribute<FText> InPlayerName);
+	TSharedRef<SVerticalBox> ConstructFlagsRemainingPanel();
+	TSharedRef<SVerticalBox> ConstructEndGameOverlayPanel();
 
 	
+public:
 	inline UMinesweeperGame* GetGame() const { return Game.Get(); }
 
 

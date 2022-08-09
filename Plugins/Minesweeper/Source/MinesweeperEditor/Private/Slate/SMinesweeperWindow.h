@@ -7,6 +7,8 @@
 #include "MinesweeperSettings.h"
 
 class SWidgetSwitcher;
+class SHorizontalBox;
+class SVerticalBox;
 class SEditableTextBox;
 class SMinesweeper;
 class SMinesweeperHighScores;
@@ -26,8 +28,16 @@ public:
 
 
 	void Construct(const FArguments& InArgs);
+private:
+	TSharedRef<SHorizontalBox> CreateTitleRow();
+	TSharedRef<SHorizontalBox> CreatePanelSwitchRadioButtonsRow();
+	TSharedRef<SVerticalBox> ConstructGameSettingsPanel();
+	TSharedRef<SHorizontalBox> ConstructGameSettingsRow(const FText& InLabelText, TSharedRef<SWidget> InContent);
+	TSharedRef<SVerticalBox> ConstructNewGameSettingsPanel();
+	TSharedRef<SHorizontalBox> ConstructDifficultyPresetButtonsRow();
 
 
+public:
 	/** The default difficulty settings when the game window is first shown. */
 	static const FMinesweeperDifficulty DefaultDifficulty;
 

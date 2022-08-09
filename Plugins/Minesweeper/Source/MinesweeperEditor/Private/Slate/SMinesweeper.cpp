@@ -32,8 +32,6 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 
 
 	// main window widget layout
-	const int32 difficultyButtonWidth = 100;
-
 	ChildSlot
 	[
 		SNew(SVerticalBox)
@@ -47,116 +45,7 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 			.HAlign(HAlign_Fill).VAlign(VAlign_Center)
 			.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
 			[
-				SNew(SHorizontalBox)
-
-				// NAME AND TIME PANEL
-				+ SHorizontalBox::Slot().FillWidth(1.0f)
-				.HAlign(HAlign_Left).VAlign(VAlign_Bottom)
-				.Padding(3.0f)
-				[
-					SNew(SBox).WidthOverride(130)
-					.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-					[
-						SNew(SVerticalBox)
-						+ SVerticalBox::Slot().AutoHeight()
-						.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-						.Padding(0.0f, 0.0f, 0.0f, 2.0f)
-						[
-							SNew(STextBlock)
-							.Justification(ETextJustify::Center)
-							.TextStyle(FMinesweeperStyle::Get(), "Text.Normal.Bold")
-							.Text(InArgs._PlayerName)
-						]
-						+ SVerticalBox::Slot().AutoHeight()
-						.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-						[
-							SNew(SBorder)
-							.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-							.BorderImage(FMinesweeperStyle::GetBrush("GameHeaderTimeBorder"))
-							.ToolTipText(LOCTEXT("TimeElapsedTooltip", "Elapsed game time in seconds."))
-							[
-								SNew(STextBlock)
-								.Margin(FMargin(0, 0, 0, -2))
-								.Justification(ETextJustify::Center)
-								.Visibility(EVisibility::SelfHitTestInvisible)
-								.TextStyle(FMinesweeperStyle::Get(), "Text.HeaderLarge")
-								.Text(this, &SMinesweeper::GetTimerText)
-							]
-						]
-					]
-				]
-
-				// MR SMILE BUTTON
-				+ SHorizontalBox::Slot().FillWidth(1.0f)
-				.HAlign(HAlign_Center).VAlign(VAlign_Center)
-				[
-					//SNew(SBox).WidthOverride(56).WidthOverride(56)
-					//.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-					//[
-						SNew(SButton)
-						.ContentPadding(0)
-						.HAlign(HAlign_Center).VAlign(VAlign_Center)
-						.OnClicked(this, &SMinesweeper::OnRestartGameButtonClick)
-						[
-							SNew(SImage)
-							.DesiredSizeOverride(FVector2D(56, 56))
-							.ToolTipText(LOCTEXT("RestartGameTooltip", "Start a new game with the same settings."))
-							.Image(this, &SMinesweeper::GetSmileImage)
-						]
-					//]
-				]
-
-				// FLAGS REMAINING
-				+ SHorizontalBox::Slot().AutoWidth()
-				.HAlign(HAlign_Right).VAlign(VAlign_Fill)
-				.Padding(3.0f)
-				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot().AutoHeight()
-					.HAlign(HAlign_Fill).VAlign(VAlign_Top)
-					.Padding(0.0f, 0.0f, 0.0f, 2.0f)
-					[
-						SNew(SButton)
-						.ContentPadding(0)
-						.HAlign(HAlign_Center).VAlign(VAlign_Center)
-						.ToolTipText(LOCTEXT("NewGameTooltip", "Start a new game with new game settings."))
-						.OnClicked(this, &SMinesweeper::OnGameSetupButtonClick)
-						[
-							SNew(STextBlock)
-							.Margin(FMargin(0, 1))
-							.Justification(ETextJustify::Center)
-							.Visibility(EVisibility::SelfHitTestInvisible)
-							.TextStyle(FMinesweeperStyle::Get(), "Text.Small")
-							.Text(LOCTEXT("GameSetupLabel", "Game Setup"))
-						]
-					]
-					+ SVerticalBox::Slot().AutoHeight()
-					.HAlign(HAlign_Right).VAlign(VAlign_Bottom)
-					[
-						SNew(SBox).WidthOverride(80)
-						.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-						[
-							SNew(SVerticalBox)
-							+ SVerticalBox::Slot().AutoHeight()
-							.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-							.Padding(0.0f, 0.0f, 0.0f, 0.0f)
-							[
-								SNew(SBorder)
-								.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-								.BorderImage(FMinesweeperStyle::GetBrush("GameHeaderTimeBorder"))
-								.ToolTipText(LOCTEXT("FlagsRemainingTooltip", "Number of flags remaining that can be placed."))
-								[
-									SNew(STextBlock)
-									.Margin(FMargin(0, 0, 0, -2))
-									.Justification(ETextJustify::Center)
-									.Visibility(EVisibility::SelfHitTestInvisible)
-									.TextStyle(FMinesweeperStyle::Get(), "Text.HeaderLarge")
-									.Text(this, &SMinesweeper::GetFlagsRemainingText)
-								]
-							]
-						]
-					]
-				]
+				ConstructHeaderRow(InArgs._PlayerName)
 			]
 		]
 
@@ -186,37 +75,167 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 				.BorderBackgroundColor(this, &SMinesweeper::GetWinLoseColor)
 				//.BorderImage([&]() { return FMinesweeperStyle::GetBrush(HasWon() ? "Border.Win" : "Border.Lose"); })
 				[
-					SNew(SVerticalBox)
-					+ SVerticalBox::Slot().AutoHeight()
-					.HAlign(HAlign_Center).VAlign(VAlign_Center)
-					.Padding(0, 0,0, 20)
-					[
-						SNew(STextBlock)
-						.TextStyle(FMinesweeperStyle::Get(), "Text.WinLose")
-						.ColorAndOpacity(this, &SMinesweeper::GetWinLoseColor)
-						.Text(this, &SMinesweeper::GetWinLoseText)
-					]
-					+ SVerticalBox::Slot().AutoHeight()
-					.HAlign(HAlign_Center).VAlign(VAlign_Center)
-					.Padding(0, 0, 0, 10)
-					[
-						SNew(STextBlock)
-						.Visibility(this, &SMinesweeper::GetHighScoreRankVisibility)
-						.TextStyle(FMinesweeperStyle::Get(), "Text.WinLose")
-						.Text(LOCTEXT("NewHighScoreLabel", "New High Score!"))
-					]
-					+ SVerticalBox::Slot().AutoHeight()
-					.HAlign(HAlign_Center).VAlign(VAlign_Center)
-					[
-						SNew(STextBlock)
-						.Visibility(this, &SMinesweeper::GetHighScoreRankVisibility)
-						.TextStyle(FMinesweeperStyle::Get(), "Text.WinLose")
-						.Text(this, &SMinesweeper::GetHighScoreRankText)
-					]
+					ConstructEndGameOverlayPanel()
 				]
 			]
 		]
 	];
+}
+
+TSharedRef<SHorizontalBox> SMinesweeper::ConstructHeaderRow(TAttribute<FText> InPlayerName)
+{
+	return 
+		SNew(SHorizontalBox)
+		// NAME AND TIME PANEL
+		+ SHorizontalBox::Slot().FillWidth(1.0f)
+		.HAlign(HAlign_Left).VAlign(VAlign_Bottom)
+		.Padding(3.0f)
+		[
+			SNew(SBox).WidthOverride(130)
+			.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+			[
+				ConstructPlayerNameAndGameTimePanel(InPlayerName)
+			]
+		]
+		// MR SMILE BUTTON
+		+ SHorizontalBox::Slot().FillWidth(1.0f)
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		[
+			//SNew(SBox).WidthOverride(56).WidthOverride(56)
+			//.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+			//[
+				SNew(SButton)
+				.ContentPadding(0)
+				.HAlign(HAlign_Center).VAlign(VAlign_Center)
+				.OnClicked(this, &SMinesweeper::OnRestartGameButtonClick)
+				[
+					SNew(SImage)
+					.DesiredSizeOverride(FVector2D(56, 56))
+					.ToolTipText(LOCTEXT("RestartGameTooltip", "Start a new game with the same settings."))
+					.Image(this, &SMinesweeper::GetSmileImage)
+				]
+			//]
+		]
+		// GAME SETUP AND FLAGS REMAINING
+		+ SHorizontalBox::Slot().AutoWidth()
+		.HAlign(HAlign_Right).VAlign(VAlign_Fill)
+		.Padding(3.0f)
+		[
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot().AutoHeight()
+			.HAlign(HAlign_Fill).VAlign(VAlign_Top)
+			.Padding(0.0f, 0.0f, 0.0f, 2.0f)
+			[
+				SNew(SButton)
+				.ContentPadding(0)
+				.HAlign(HAlign_Center).VAlign(VAlign_Center)
+				.ToolTipText(LOCTEXT("NewGameTooltip", "Start a new game with new game settings."))
+				.OnClicked(this, &SMinesweeper::OnGameSetupButtonClick)
+				[
+					SNew(STextBlock)
+					.Margin(FMargin(0, 1))
+					.Justification(ETextJustify::Center)
+					.Visibility(EVisibility::SelfHitTestInvisible)
+					.TextStyle(FMinesweeperStyle::Get(), "Text.Small")
+					.Text(LOCTEXT("GameSetupLabel", "Game Setup"))
+				]
+			]
+			+ SVerticalBox::Slot().AutoHeight()
+			.HAlign(HAlign_Right).VAlign(VAlign_Bottom)
+			[
+				SNew(SBox).WidthOverride(80)
+				.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+				[
+					ConstructFlagsRemainingPanel()
+				]
+			]
+		];
+}
+
+TSharedRef<SVerticalBox> SMinesweeper::ConstructPlayerNameAndGameTimePanel(TAttribute<FText> InPlayerName)
+{
+	return 
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+		.Padding(0.0f, 0.0f, 0.0f, 2.0f)
+		[
+			SNew(STextBlock)
+			.Justification(ETextJustify::Center)
+			.TextStyle(FMinesweeperStyle::Get(), "Text.Normal.Bold")
+			.Text(InPlayerName)
+		]
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+		[
+			SNew(SBorder)
+			.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+			.BorderImage(FMinesweeperStyle::GetBrush("GameHeaderTimeBorder"))
+			.ToolTipText(LOCTEXT("TimeElapsedTooltip", "Elapsed game time in seconds."))
+			[
+				SNew(STextBlock)
+				.Margin(FMargin(0, 0, 0, -2))
+				.Justification(ETextJustify::Center)
+				.Visibility(EVisibility::SelfHitTestInvisible)
+				.TextStyle(FMinesweeperStyle::Get(), "Text.HeaderLarge")
+				.Text(this, &SMinesweeper::GetTimerText)
+			]
+		];
+}
+
+TSharedRef<SVerticalBox> SMinesweeper::ConstructFlagsRemainingPanel()
+{
+	return 
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+		.Padding(0.0f, 0.0f, 0.0f, 0.0f)
+		[
+			SNew(SBorder)
+			.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+			.BorderImage(FMinesweeperStyle::GetBrush("GameHeaderTimeBorder"))
+			.ToolTipText(LOCTEXT("FlagsRemainingTooltip", "Number of flags remaining that can be placed."))
+			[
+				SNew(STextBlock)
+				.Margin(FMargin(0, 0, 0, -2))
+				.Justification(ETextJustify::Center)
+				.Visibility(EVisibility::SelfHitTestInvisible)
+				.TextStyle(FMinesweeperStyle::Get(), "Text.HeaderLarge")
+				.Text(this, &SMinesweeper::GetFlagsRemainingText)
+			]
+		];
+}
+
+TSharedRef<SVerticalBox> SMinesweeper::ConstructEndGameOverlayPanel()
+{
+	return 
+		SNew(SVerticalBox)
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		.Padding(0, 0,0, 20)
+		[
+			SNew(STextBlock)
+			.TextStyle(FMinesweeperStyle::Get(), "Text.WinLose")
+			.ColorAndOpacity(this, &SMinesweeper::GetWinLoseColor)
+			.Text(this, &SMinesweeper::GetWinLoseText)
+		]
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		.Padding(0, 0, 0, 10)
+		[
+			SNew(STextBlock)
+			.Visibility(this, &SMinesweeper::GetHighScoreRankVisibility)
+			.TextStyle(FMinesweeperStyle::Get(), "Text.WinLose")
+			.Text(LOCTEXT("NewHighScoreLabel", "New High Score!"))
+		]
+		+ SVerticalBox::Slot().AutoHeight()
+		.HAlign(HAlign_Center).VAlign(VAlign_Center)
+		[
+			SNew(STextBlock)
+			.Visibility(this, &SMinesweeper::GetHighScoreRankVisibility)
+			.TextStyle(FMinesweeperStyle::Get(), "Text.WinLose")
+			.Text(this, &SMinesweeper::GetHighScoreRankText)
+		];
 }
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
@@ -315,13 +334,6 @@ void SMinesweeper::SetGridSize(const FIntVector2& InGridSize, const float InNewC
 		GridCanvas = TStrongObjectPtr<UMinesweeperGridCanvas>(
 			UMinesweeperBlueprintLib::CreateMinesweeperGridCanvas(GetTransientPackage(), Game.Get(), cellDrawSize)
 		);
-		/*GridCanvas = TStrongObjectPtr<UMinesweeperGridCanvas>(
-			(UMinesweeperGridCanvas*)UCanvasRenderTarget2D::CreateCanvasRenderTarget2D(
-				GetTransientPackage(),
-				UMinesweeperGridCanvas::StaticClass(),
-				gridCanvasSize.X, gridCanvasSize.Y
-			)
-		);*/
 
 		UMinesweeperSettings* settings = UMinesweeperSettings::Get();
 

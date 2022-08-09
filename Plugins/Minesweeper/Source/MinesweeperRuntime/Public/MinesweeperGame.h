@@ -79,7 +79,7 @@ public:
 
 	/** Returns false if the cell coordinate is invalid or the cell is open. */
 	UFUNCTION(BlueprintCallable, Category = "Minesweeper")
-		bool TryFlagCall(const int32 CellX, const int32 CellY);
+		bool TryFlagCell(const int32 CellX, const int32 CellY);
 
 
 	UPROPERTY(BlueprintAssignable, Category = "Minesweeper")
