@@ -47,7 +47,6 @@ struct MINESWEEPERRUNTIME_API FMinesweeperCell
 
 DECLARE_MULTICAST_DELEGATE_ThreeParams(FMinesweeperGameOverDelegated, const bool, const float, const int32);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FMinesweeperGameOverDelegate, const bool, Won, const float, Time, const int32, Clicks);
-//DECLARE_DYNAMIC_DELEGATE_ThreeParams(FMinesweeperGameOverDelegatedd, const bool, Won, const float, Time, const int32, Clicks);
 
 
 /**
@@ -86,8 +85,7 @@ public:
 		FMinesweeperGameOverDelegate OnGameOver;
 
 	//UPROPERTY(BlueprintAssignable, Category = "Minesweeper")
-		//FMinesweeperGameOverDelegatedd OnGameOveredd;
-	FMinesweeperGameOverDelegated OnGameOvered;
+		FMinesweeperGameOverDelegated OnGameOvered;
 
 
 	UFUNCTION(BlueprintPure, Category = "Minesweeper")
