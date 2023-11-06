@@ -6,3 +6,5 @@ by Brad Monahan
 
 Trial Task for GeoTech
 
+Built as a plugin. Project for testing.
+
