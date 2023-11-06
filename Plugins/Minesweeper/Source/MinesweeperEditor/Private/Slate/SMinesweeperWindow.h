@@ -20,7 +20,7 @@ struct FMinesweeperDifficulty;
 /**
  * Minesweeper game parent window that handles game setup.
  */
-class SMinesweeperWindow : public SCompoundWidget
+class MINESWEEPEREDITOR_API SMinesweeperWindow : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SMinesweeperWindow) { }
@@ -31,6 +31,7 @@ public:
 private:
 	TSharedRef<SHorizontalBox> CreateTitleRow();
 	TSharedRef<SHorizontalBox> CreatePanelSwitchRadioButtonsRow();
+	TSharedRef<SBox> CreatePanelSwitchPages();
 	TSharedRef<SVerticalBox> ConstructGameSettingsPanel();
 	TSharedRef<SHorizontalBox> ConstructGameSettingsRow(const FText& InLabelText, TSharedRef<SWidget> InContent);
 	TSharedRef<SVerticalBox> ConstructNewGameSettingsPanel();
@@ -52,9 +53,6 @@ private:
 	UMinesweeperSettings* Settings = nullptr;
 
 
-	FTimerHandle CellDrawResizeTimerHandle;
-
-
 	int32 TitleTextAnimIndex = 20;
 
 
@@ -72,9 +70,6 @@ private:
 	TSharedPtr<SEditableTextBox> NameTextBox;
 	TSharedPtr<SMinesweeperHighScores> HighScoresList;
 	TSharedPtr<SMinesweeper> GameWidget;
-
-
-	void OnCellDrawSizeChanged(const FPropertyChangedEvent& InPropertyChangedEvent);
 
 
 	FText GetPlayerName() const;

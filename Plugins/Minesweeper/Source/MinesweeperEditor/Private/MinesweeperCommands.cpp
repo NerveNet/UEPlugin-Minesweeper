@@ -3,7 +3,7 @@
 #include "MinesweeperCommands.h"
 
 
-#define LOCTEXT_NAMESPACE "FMinesweeperCommands"
+#define LOCTEXT_NAMESPACE "Minesweeper"
 
 
 

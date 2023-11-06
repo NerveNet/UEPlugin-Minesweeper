@@ -3,6 +3,9 @@
 #include "MinesweeperGame.h"
 
 
+#define LOCTEXT_NAMESPACE "Minesweeper"
+
+
 
 
 void UMinesweeperGame::SetupGame(const FMinesweeperDifficulty& InDifficulty)
@@ -120,7 +123,7 @@ bool UMinesweeperGame::TryOpenCell(const int32 CellX, const int32 CellY)
 }
 
 
-bool UMinesweeperGame::TryFlagCall(const int32 CellX, const int32 CellY)
+bool UMinesweeperGame::TryFlagCell(const int32 CellX, const int32 CellY)
 {
 	const int32 cellIndex = GridCoordToIndex(FIntVector2(CellX, CellY));
 	if (!CellMap.Contains(cellIndex)) return false;
@@ -284,3 +287,7 @@ void UMinesweeperGame::Tick(float InDeltaTime)
 	}
 }
 
+
+
+
+#undef LOCTEXT_NAMESPACE

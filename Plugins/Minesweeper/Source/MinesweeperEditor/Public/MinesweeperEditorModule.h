@@ -27,11 +27,10 @@ private:
     TSharedPtr<FExtender> MainMenuExtender;
     
     
-    /** Holds a pointer to the actual game slate widget. */
     TSharedPtr<SMinesweeperWindow> MinesweeperGame;
 
-    /** Pointer to the generic SWindow parent when in standalone window mode. */
     TSharedPtr<SWindow> StandaloneParentWindow;
+    TSharedPtr<SDockTab> ParentDockTab;
 
 
 public:

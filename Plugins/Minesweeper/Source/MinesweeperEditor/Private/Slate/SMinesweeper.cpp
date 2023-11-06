@@ -5,14 +5,13 @@
 #include "MinesweeperSettings.h"
 #include "Slate/SMinesweeperGrid.h"
 #include "MinesweeperGame.h"
-#include "MinesweeperGridCanvas.h"
-#include "MinesweeperBlueprintLib.h"
+#include "MinesweeperStatics.h"
 #include "Editor.h"
 #include "SlateOptMacros.h"
 #include "Widgets/Images/SImage.h"
 
 
-#define LOCTEXT_NAMESPACE "SMinesweeper"
+#define LOCTEXT_NAMESPACE "Minesweeper"
 
 
 
@@ -28,7 +27,10 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 
 
 	Game = TStrongObjectPtr<UMinesweeperGame>(NewObject<UMinesweeperGame>(GetTransientPackage()));
-	SetCellDrawSize(InArgs._CellDrawSize);
+
+
+	UMinesweeperSettings* settings = UMinesweeperSettings::Get();
+	settings->OnVisualThemeChanged.AddSP(this, &SMinesweeper::OnVisualThemeChanged);
 
 
 	// main window widget layout
@@ -59,11 +61,11 @@ void SMinesweeper::Construct(const FArguments& InArgs)
 			[
 				SNew(SBorder)
 				[
-					SNew(SMinesweeperGrid)
-					.GridCanvasBrush(&GridCanvasBrush)
+					SAssignNew(GridWidget, SMinesweeperGrid)
+					.VisualTheme(settings->VisualTheme)
 					.OnCellLeftClick(this, &SMinesweeper::OnCellLeftClick)
 					.OnCellRightClick(this, &SMinesweeper::OnCellRightClick)
-					.OnHoverCellChanged(this, &SMinesweeper::OnHoverCellChanged)
+					.OnCellHoverChange(this, &SMinesweeper::OnHoverCellChange)
 				]
 			]
 			+ SOverlay::Slot()
@@ -240,6 +242,19 @@ TSharedRef<SVerticalBox> SMinesweeper::ConstructEndGameOverlayPanel()
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 
+void SMinesweeper::OnVisualThemeChanged(const FPropertyChangedEvent& InPropertyChangedEvent)
+{
+	if (!VisualThemeChangeTimerHandle.IsValid())
+	{
+		const UMinesweeperSettings* settings = UMinesweeperSettings::GetConst();
+		GridWidget->SetupGridCanvas(Game.Get(), settings->VisualTheme);
+	}
+
+	// disable resizing for one second to throttle sizing from settings
+	GEditor->GetTimerManager()->SetTimer(VisualThemeChangeTimerHandle, [&]() { VisualThemeChangeTimerHandle.Invalidate(); }, 0.0f, false, 1.0f);
+}
+
+
 bool SMinesweeper::IsGameActive() const
 {
 	return Game->IsGameActive();
@@ -248,13 +263,15 @@ bool SMinesweeper::IsGameActive() const
 void SMinesweeper::StartNewGame(const FMinesweeperDifficulty& InDifficulty)
 {
 	Game->SetupGame(InDifficulty);
-	SetGridSize(InDifficulty.GridSize());
+
+	const UMinesweeperSettings* settings = UMinesweeperSettings::GetConst();
+	GridWidget->SetupGridCanvas(Game.Get(), settings->VisualTheme);
 }
 
 void SMinesweeper::RestartGame()
 {
 	Game->RestartGame();
-	GridCanvas->UpdateResource();
+	GridWidget->UpdateResource();
 }
 
 void SMinesweeper::PauseGame()
@@ -324,86 +341,34 @@ FReply SMinesweeper::OnGameSetupButtonClick()
 }
 
 
-void SMinesweeper::SetGridSize(const FIntVector2& InGridSize, const float InNewCellDrawSize)
+void SMinesweeper::OnCellLeftClick(const int32 InCellX, const int32 InCellY, const FVector2D& InGridPosition)
 {
-	const float cellDrawSize = FMath::Clamp(InNewCellDrawSize > -1.0f ? InNewCellDrawSize : GetCellDrawSize(), 10.0f, 64.0f);
-	FVector2D gridCanvasSize(InGridSize.X * cellDrawSize, InGridSize.Y * cellDrawSize);
+	if (!Game.IsValid() || !GridWidget.IsValid()) return;
 
-	if (!GridCanvas.IsValid())
-	{
-		GridCanvas = TStrongObjectPtr<UMinesweeperGridCanvas>(
-			UMinesweeperBlueprintLib::CreateMinesweeperGridCanvas(GetTransientPackage(), Game.Get(), cellDrawSize)
-		);
+	Game->TryOpenCell(InCellX, InCellY);
 
-		UMinesweeperSettings* settings = UMinesweeperSettings::Get();
-
-		GridCanvas->SetClosedCellTexture(Cast<UTexture2D>(settings->ClosedCellTexture.TryLoad()));
-		GridCanvas->SetOpenCellTexture(Cast<UTexture2D>(settings->OpenCellTexture.TryLoad()));
-		GridCanvas->SetOpenCellMineTexture(Cast<UTexture2D>(settings->OpenCellMineTexture.TryLoad()));
-		GridCanvas->SetMineTexture(Cast<UTexture2D>(settings->MineTexture.TryLoad()));
-		GridCanvas->SetFlagTexture(Cast<UTexture2D>(settings->FlagTexture.TryLoad()));
-		GridCanvas->SetHoverCellTexture(Cast<UTexture2D>(settings->HoverCellTexture.TryLoad()));
-		GridCanvas->SetCellFont((UFont*)(settings->CellFont.TryLoad()));
-
-		GridCanvasBrush.SetResourceObject(GridCanvas.Get());
-		GridCanvasBrush.TintColor = FLinearColor::White;
-	}
-	else
-	{
-		GridCanvas->ResizeTarget(gridCanvasSize.X, gridCanvasSize.Y);
-	}
-
-	GridCanvasBrush.SetImageSize(gridCanvasSize);
-
-	GridCanvas->InitCanvas(Game.Get(), cellDrawSize);
+	GridWidget->UpdateResource();
 }
 
-float SMinesweeper::GetCellDrawSize() const
+void SMinesweeper::OnCellRightClick(const int32 InCellX, const int32 InCellY, const FVector2D& InGridPosition)
 {
-	return GridCanvas.IsValid() ? GridCanvas->GetCellDrawSize() : UMinesweeperGridCanvas::DefaultCellDrawSize();
+	if (!Game.IsValid() || !GridWidget.IsValid()) return;
+
+	Game->TryFlagCell(InCellX, InCellY);
+
+	GridWidget->UpdateResource();
 }
 
-void SMinesweeper::SetCellDrawSize(const float InCellDrawSize)
+void SMinesweeper::OnHoverCellChange(const bool InIsHovered, const int32 InCellX, const int32 InCellY, const FVector2D& InGridPosition)
 {
-	// texture needs to be resized when cell draw size is changed
-	SetGridSize(Game->GetDifficulty().GridSize(), InCellDrawSize);
-}
-
-
-void SMinesweeper::OnCellLeftClick(const FVector2D& InGridPosition)
-{
-	if (!GridCanvas.IsValid()) return;
-
-	FIntVector2 cellCoord;
-	GridCanvas->GridPositionToCellCoord(InGridPosition, cellCoord.X, cellCoord.Y);
-
-	Game->TryOpenCell(cellCoord.X, cellCoord.Y);
-
-	GridCanvas->UpdateResource();
-}
-
-void SMinesweeper::OnCellRightClick(const FVector2D& InGridPosition)
-{
-	if (!GridCanvas.IsValid()) return;
-
-	FIntVector2 cellCoord;
-	GridCanvas->GridPositionToCellCoord(InGridPosition, cellCoord.X, cellCoord.Y);
-
-	Game->TryFlagCall(cellCoord.X, cellCoord.Y);
-
-	GridCanvas->UpdateResource();
-}
-
-void SMinesweeper::OnHoverCellChanged(const bool InIsHovered, const FVector2D& InGridPosition)
-{
-	if (!GridCanvas.IsValid()) return;
+	if (!Game.IsValid() || !GridWidget.IsValid()) return;
 
 	if (InIsHovered)
-		GridCanvas->SetHoverCellIndex(GridCanvas->GridPositionToCellIndex(InGridPosition));
+		GridWidget->SetHoverCellCoord(FIntVector2(InCellX, InCellY));
 	else
-		GridCanvas->ClearHoverCell();
+		GridWidget->ClearHoverCell();
 
-	GridCanvas->UpdateResource();
+	GridWidget->UpdateResource();
 }
 
 

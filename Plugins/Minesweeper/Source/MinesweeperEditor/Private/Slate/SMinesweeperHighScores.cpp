@@ -4,7 +4,7 @@
 #include "SlateOptMacros.h"
 
 
-#define LOCTEXT_NAMESPACE "SMinesweeperHighScores"
+#define LOCTEXT_NAMESPACE "Minesweeper"
 
 
 

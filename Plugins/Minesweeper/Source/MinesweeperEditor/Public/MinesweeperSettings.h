@@ -5,7 +5,11 @@
 #include "Engine/DeveloperSettings.h"
 #include "MinesweeperEditorModule.h"
 #include "MinesweeperDifficulty.h"
+#include "MinesweeperVisualTheme.h"
 #include "MinesweeperSettings.generated.h"
+
+class UTexture2D;
+class UFont;
 
 
 
@@ -14,7 +18,7 @@
  * Data representation for a single user high score.
  */
 USTRUCT()
-struct FMinesweeperHighScore
+struct MINESWEEPEREDITOR_API FMinesweeperHighScore
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -46,11 +50,15 @@ struct FMinesweeperHighScore
  * Developer settings class for the Minesweeper plugin.
  */
 UCLASS(Config="Minesweeper", DefaultConfig)
-class UMinesweeperSettings : public UDeveloperSettings
+class MINESWEEPEREDITOR_API UMinesweeperSettings : public UDeveloperSettings
 {
 	GENERATED_UCLASS_BODY()
 	
 public:
+	static UMinesweeperSettings* Get() { return GetMutableDefault<UMinesweeperSettings>(); }
+	static const UMinesweeperSettings* GetConst() { return GetDefault<UMinesweeperSettings>(); }
+
+
 	//~ Begin UObject Overrides
 	virtual void PostInitProperties() override;
 #if WITH_EDITOR
@@ -73,13 +81,13 @@ public:
 	void ResetToDefaults();
 
 
-	static UMinesweeperSettings* Get() { return GetMutableDefault<UMinesweeperSettings>(); }
-	static const UMinesweeperSettings* GetConst() { return GetDefault<UMinesweeperSettings>(); }
+	FMinesweeperVisualTheme DoIt();
 
 
 	/** Event triggered when any setting is changed. */
 	FOnFinishedChangingProperties OnSettingsChanged;
 
+	FOnFinishedChangingProperties OnVisualThemeChanged;
 	FOnFinishedChangingProperties OnCellDrawSizeChanged;
 
 
@@ -106,37 +114,43 @@ public:
 		FMinesweeperDifficulty LastDifficulty;
 
 
-	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (UIMin = 10.0, ClampMin = 10.0, UIMax = 64.0, ClampMax = 64.0,
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (
+			DisplayName = "Visual Theme",
+			Tooltip = ""))
+		FMinesweeperVisualTheme VisualTheme;
+
+
+	/*UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (UIMin = 10.0, ClampMin = 10.0, UIMax = 64.0, ClampMax = 64.0,
 			DisplayName = "Cell Draw Size",
 			Tooltip = "The size of each cell on the screen in pixels."))
 		float CellDrawSize;
 
-	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Texture2D"))
-		FSoftObjectPath ClosedCellTexture;
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General")
+		TSoftObjectPtr<UTexture2D> ClosedCellTexture;
 
-	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Texture2D"))
-		FSoftObjectPath OpenCellTexture;
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General")
+		TSoftObjectPtr<UTexture2D> OpenCellTexture;
 
-	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Texture2D"))
-		FSoftObjectPath OpenCellMineTexture;
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General")
+		TSoftObjectPtr<UTexture2D> OpenCellMineTexture;
 
-	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Texture2D"))
-		FSoftObjectPath MineTexture;
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General")
+		TSoftObjectPtr<UTexture2D> MineTexture;
 
-	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Texture2D"))
-		FSoftObjectPath FlagTexture;
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General")
+		TSoftObjectPtr<UTexture2D> FlagTexture;
 
-	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Texture2D"))
-		FSoftObjectPath HoverCellTexture;
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General")
+		TSoftObjectPtr<UTexture2D> HoverCellTexture;
 
-	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General", Meta = (AllowedClasses = "Font"))
-		FSoftObjectPath CellFont;
+	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General")
+		TSoftObjectPtr<UFont> CellFont;
 
 	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General")
 		FLinearColor HoverCellValidColor;
 
 	UPROPERTY(Config, EditAnywhere, AdvancedDisplay, Category = "General")
-		FLinearColor HoverCellInvalidColor;
+		FLinearColor HoverCellInvalidColor;*/
 
 
 	UPROPERTY(Config/*, EditAnywhere, Category = "General"*/) TArray<FMinesweeperHighScore> HighScores;

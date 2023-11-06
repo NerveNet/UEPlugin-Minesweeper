@@ -2,12 +2,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "MinesweeperStatics.h"
 #include "Widgets/SCompoundWidget.h"
 
 class SHorizontalBox;
 class SVerticalBox;
 class UMinesweeperGame;
-class UMinesweeperGridCanvas;
 class SMinesweeperGrid;
 struct FMinesweeperDifficulty;
 
@@ -20,14 +20,11 @@ DECLARE_DELEGATE_RetVal_ThreeParams(int32, FMinesweeperGameOverHighScoreDelegate
 /**
  * Slate Minesweeper game UI visualtion for UMinesweeperGame class.
  */
-class SMinesweeper : public SCompoundWidget
+class MINESWEEPEREDITOR_API SMinesweeper : public SCompoundWidget
 {
 public:
 	SLATE_BEGIN_ARGS(SMinesweeper)
-		: _CellDrawSize(28.0f)
 	{ }
-
-		SLATE_ARGUMENT(float, CellDrawSize)
 
 		SLATE_ATTRIBUTE(FText, PlayerName)
 
@@ -57,24 +54,23 @@ public:
 	void ContinueGame();
 
 
-	void SetGridSize(const FIntVector2& InGridSize, const float InNewCellDrawSize = -1.0f);
-
-	float GetCellDrawSize() const;
-	void SetCellDrawSize(const float InCellDrawSize);
-
-
 private:
 	/** Minesweeper game logic object. */
 	TStrongObjectPtr<UMinesweeperGame> Game;
-	/** Render target texture where the cell textures are drawn for each cell. */
-	TStrongObjectPtr<UMinesweeperGridCanvas> GridCanvas;
-	FSlateBrush GridCanvasBrush;
+
+	TSharedPtr<SMinesweeperGrid> GridWidget;
 
 
 	FSimpleDelegate OnGameSetupClick;
 	FMinesweeperGameOverHighScoreDelegate OnGameOver;
 
 	int8 LastHighScoreRank = -1;
+
+
+	FTimerHandle VisualThemeChangeTimerHandle;
+
+
+	void OnVisualThemeChanged(const FPropertyChangedEvent& InPropertyChangedEvent);
 
 
 	FText GetTimerText() const;
@@ -91,9 +87,9 @@ private:
 	FReply OnGameSetupButtonClick();
 
 
-	void OnCellLeftClick(const FVector2D& InGridPosition);
-	void OnCellRightClick(const FVector2D& InGridPosition);
-	void OnHoverCellChanged(const bool InIsHovered, const FVector2D& InGridPosition);
+	void OnCellLeftClick(const int32 InCellX, const int32 InCellY, const FVector2D& InGridPosition);
+	void OnCellRightClick(const int32 InCellX, const int32 InCellY, const FVector2D& InGridPosition);
+	void OnHoverCellChange(const bool InIsHovered, const int32 InCellX, const int32 InCellY, const FVector2D& InGridPosition);
 
 };
 

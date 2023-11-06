@@ -2,7 +2,7 @@
 
 #include "MinesweeperStyle.h"
 #include "MinesweeperEditorModule.h"
-#include "MinesweeperGridCanvas.h"
+#include "MinesweeperStatics.h"
 #include "Styling/SlateStyleRegistry.h"
 #include "Interfaces/IPluginManager.h"
 #include "Styling/StyleColors.h"
@@ -99,14 +99,14 @@ void FMinesweeperStyle::Initialize()
 	StyleSet->Set("Color.Title", HighScoreListHeaderColor);
 	StyleSet->Set("Color.HighScoreListHeader", HighScoreListHeaderColor);
 	
-	StyleSet->Set("Color.OneNeighborText", UMinesweeperGridCanvas::DefaultNeighborMineCountColor(1));
-	StyleSet->Set("Color.TwoNeighborText", UMinesweeperGridCanvas::DefaultNeighborMineCountColor(2));
-	StyleSet->Set("Color.ThreeNeighborText", UMinesweeperGridCanvas::DefaultNeighborMineCountColor(3));
-	StyleSet->Set("Color.FourNeighborText", UMinesweeperGridCanvas::DefaultNeighborMineCountColor(4));
-	StyleSet->Set("Color.FiveNeighborText", UMinesweeperGridCanvas::DefaultNeighborMineCountColor(5));
-	StyleSet->Set("Color.SixNeighborText", UMinesweeperGridCanvas::DefaultNeighborMineCountColor(6));
-	StyleSet->Set("Color.SevenNeighborText", UMinesweeperGridCanvas::DefaultNeighborMineCountColor(7));
-	StyleSet->Set("Color.EightNeighborText", UMinesweeperGridCanvas::DefaultNeighborMineCountColor(8));
+	StyleSet->Set("Color.OneNeighborText", UMinesweeperStatics::DefaultNeighborMineCountColor(1));
+	StyleSet->Set("Color.TwoNeighborText", UMinesweeperStatics::DefaultNeighborMineCountColor(2));
+	StyleSet->Set("Color.ThreeNeighborText", UMinesweeperStatics::DefaultNeighborMineCountColor(3));
+	StyleSet->Set("Color.FourNeighborText", UMinesweeperStatics::DefaultNeighborMineCountColor(4));
+	StyleSet->Set("Color.FiveNeighborText", UMinesweeperStatics::DefaultNeighborMineCountColor(5));
+	StyleSet->Set("Color.SixNeighborText", UMinesweeperStatics::DefaultNeighborMineCountColor(6));
+	StyleSet->Set("Color.SevenNeighborText", UMinesweeperStatics::DefaultNeighborMineCountColor(7));
+	StyleSet->Set("Color.EightNeighborText", UMinesweeperStatics::DefaultNeighborMineCountColor(8));
 
 	StyleSet->Set("Color.Win", FLinearColor(0.0f, 1.0f, 0.0f));
 	StyleSet->Set("Color.Lose", FLinearColor(1.0f, 0.0f, 0.0f));

@@ -35,7 +35,8 @@ public class MinesweeperRuntime : ModuleRules
                 "Engine",
                 "SlateCore", 
                 "Slate",
-				"Projects"
+				"Projects",
+				"UMG"
 			}
         );
 

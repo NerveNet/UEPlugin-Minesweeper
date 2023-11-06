@@ -11,7 +11,7 @@
 /**
  * Minesweeper High Scores List
  */
-class SMinesweeperHighScores : public SVerticalBox
+class MINESWEEPEREDITOR_API SMinesweeperHighScores : public SVerticalBox
 {
 public:
 	SLATE_BEGIN_ARGS(SMinesweeperHighScores)

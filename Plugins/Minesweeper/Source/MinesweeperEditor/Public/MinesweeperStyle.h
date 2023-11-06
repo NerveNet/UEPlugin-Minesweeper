@@ -12,7 +12,7 @@ struct FSlateBrush;
 
 
 
-class FMinesweeperStyle
+class MINESWEEPEREDITOR_API FMinesweeperStyle
 {
 public:
 	static void Initialize();
@@ -24,7 +24,8 @@ public:
 	static const FLinearColor GetColor(const FName& InName) { return StyleSet->GetSlateColor(InName).GetSpecifiedColor(); }
 	static const FSlateFontInfo GetFontStyle(const FName& InName) { return StyleSet->GetFontStyle(InName); }
 	static const FSlateIcon GetIcon(const FName& InName) { return FSlateIcon(GetStyleSetName(), InName); }
-	static const FSlateBrush* GetBrush(const FName& InName) { return StyleSet->GetBrush(InName); }
+	//static const FSlateBrush* GetBrush(const FName& InName) { return StyleSet->GetBrush(InName); }
+	static const FSlateBrush* GetBrush(const FName& InName) { return FSlateIcon(GetStyleSetName(), InName).GetIcon(); }
 
 
 private:

@@ -143,6 +143,7 @@ protected:
 
 
 	int32 GridRandomSeed = 0;
+
 	FMinesweeperDifficulty Difficulty;
 
 	TMap<int32, TSharedRef<FMinesweeperCell>> CellMap;

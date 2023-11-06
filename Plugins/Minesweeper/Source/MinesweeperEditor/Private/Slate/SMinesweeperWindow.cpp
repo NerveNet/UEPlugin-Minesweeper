@@ -5,6 +5,7 @@
 #include "MinesweeperSettings.h"
 #include "MinesweeperDifficulty.h"
 #include "MinesweeperGame.h"
+#include "MinesweeperStatics.h"
 #include "Slate/SMinesweeper.h"
 #include "Slate/SMinesweeperHighScores.h"
 #include "Editor.h"
@@ -17,12 +18,12 @@
 #include "ISettingsModule.h"
 
 
-#define LOCTEXT_NAMESPACE "SMinesweeperWindow"
+#define LOCTEXT_NAMESPACE "Minesweeper"
 
 
 
 
-FMinesweeperDifficulty const SMinesweeperWindow::DefaultDifficulty = FMinesweeperDifficulty::Beginner();
+FMinesweeperDifficulty const SMinesweeperWindow::DefaultDifficulty = UMinesweeperStatics::BeginnerDifficulty();
 
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
@@ -30,21 +31,42 @@ void SMinesweeperWindow::Construct(const FArguments& InArgs)
 {
 	SetCanTick(false);
 
-
 	Settings = UMinesweeperSettings::Get();
-	Settings->OnCellDrawSizeChanged.AddSP(this, &SMinesweeperWindow::OnCellDrawSizeChanged);
-
 
 	// main window widget layout
 	ChildSlot
+	//.HAlign(HAlign_Fill).VAlign(VAlign_Top).Padding(0)
 	[
 		SNew(SWidgetSwitcher)
 		.WidgetIndex_Lambda([&]() { return ActiveMainPanel; })
 
 		// NEW GAME PANEL
-		+ SWidgetSwitcher::Slot()
+		+ SWidgetSwitcher::Slot().HAlign(HAlign_Fill).VAlign(VAlign_Top).Padding(0)
 		[
 			SNew(SOverlay)
+			+ SOverlay::Slot()
+			.HAlign(HAlign_Fill).VAlign(VAlign_Top)
+			[
+				SNew(SVerticalBox)
+				+ SVerticalBox::Slot().AutoHeight()
+				.HAlign(HAlign_Center).VAlign(VAlign_Center)
+				.Padding(0.0f, 3.0f, 0.0f, 0.0f)
+				[
+					CreateTitleRow()
+				]
+				+ SVerticalBox::Slot().AutoHeight()
+				.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+				.Padding(5.0f, 10.0f, 5.0f, 0.0f)
+				[
+					CreatePanelSwitchRadioButtonsRow()
+				]
+				+ SVerticalBox::Slot().AutoHeight()//.FillHeight(1.0f)
+				.HAlign(HAlign_Fill).VAlign(VAlign_Top)
+				.Padding(5.0f, 5.0f, 5.0f, 5.0f)
+				[
+					CreatePanelSwitchPages()
+				]
+			]
 			+ SOverlay::Slot()
 			.HAlign(HAlign_Left).VAlign(VAlign_Top)
 			.Padding(0.0f, 0.0f, 0.0f, 0.0f)
@@ -61,76 +83,12 @@ void SMinesweeperWindow::Construct(const FArguments& InArgs)
 					.OnClicked(this, &SMinesweeperWindow::OnSwitchWindowModeClick)
 				]
 			]
-			+ SOverlay::Slot()
-			.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-			[
-				SNew(SVerticalBox)
-
-				// TITLE AREA
-				+ SVerticalBox::Slot().AutoHeight()
-				.HAlign(HAlign_Center).VAlign(VAlign_Center)
-				.Padding(0.0f, 3.0f, 0.0f, 0.0f)
-				[
-					CreateTitleRow()
-				]
-
-				// NEW GAME SETUP / HIGH SCORES BUTTONS
-				+ SVerticalBox::Slot().AutoHeight()
-				.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-				.Padding(5.0f, 10.0f, 5.0f, 0.0f)
-				[
-					CreatePanelSwitchRadioButtonsRow()
-				]
-				
-				+ SVerticalBox::Slot().AutoHeight()
-				.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-				.Padding(5.0f, 5.0f, 5.0f, 0.0f)
-				[
-					SNew(SBox)
-					.WidthOverride(360).HeightOverride(270)
-					[
-						SNew(SWidgetSwitcher)
-						.WidgetIndex_Lambda([&]() { return ActiveGameSetupPanel; })
-					
-						// NEW GAME SETTINGS
-						+ SWidgetSwitcher::Slot()//.AutoWidth()
-						.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-						.Padding(5.0f, 5.0f, 5.0f, 0.0f)
-						[
-							SNew(SBorder)
-							//.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
-							.BorderImage(FMinesweeperStyle::GetBrush("RoundedPanel"))
-							.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-							.Padding(10.0f)
-							[
-								ConstructGameSettingsPanel()
-							]
-						]
-
-						// HIGH SCORES LIST
-						+ SWidgetSwitcher::Slot()
-						.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-						.Padding(5.0f, 5.0f, 5.0f, 0.0f)
-						[
-							SNew(SBorder)
-							.BorderImage(FMinesweeperStyle::GetBrush("RoundedPanel"))
-							.HAlign(HAlign_Fill).VAlign(VAlign_Center)
-							.Padding(10.0f)
-							[
-								SAssignNew(HighScoresList, SMinesweeperHighScores)
-								.HighScores(&Settings->HighScores)
-							]
-						]
-					]
-				]
-			]
 		]
 
 		// GAME PANEL
-		+ SWidgetSwitcher::Slot()
+		+ SWidgetSwitcher::Slot().HAlign(HAlign_Center).VAlign(VAlign_Center)
 		[
 			SAssignNew(GameWidget, SMinesweeper)
-			.CellDrawSize(Settings->CellDrawSize)
 			.PlayerName(this, &SMinesweeperWindow::GetPlayerName)
 			.OnGameSetupClick(this, &SMinesweeperWindow::GotoNewGamePanel)
 			.OnGameOver(this, &SMinesweeperWindow::OnGameOverCallback)
@@ -217,6 +175,47 @@ TSharedRef<SHorizontalBox> SMinesweeperWindow::CreatePanelSwitchRadioButtonsRow(
 		];
 }
 
+TSharedRef<SBox> SMinesweeperWindow::CreatePanelSwitchPages()
+{
+	return
+		SNew(SBox)
+		.WidthOverride(360).HeightOverride(270)
+		[
+			SNew(SWidgetSwitcher)
+			.WidgetIndex_Lambda([&]() { return ActiveGameSetupPanel; })
+					
+			// NEW GAME SETTINGS
+			+ SWidgetSwitcher::Slot()
+			.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+			.Padding(5.0f, 5.0f, 5.0f, 0.0f)
+			[
+				SNew(SBorder)
+				//.BorderImage(FEditorStyle::GetBrush("ToolPanel.GroupBorder"))
+				.BorderImage(FMinesweeperStyle::GetBrush("RoundedPanel"))
+				.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+				.Padding(10.0f)
+				[
+					ConstructGameSettingsPanel()
+				]
+			]
+	
+			// HIGH SCORES LIST
+			+ SWidgetSwitcher::Slot()
+			.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+			.Padding(5.0f, 5.0f, 5.0f, 0.0f)
+			[
+				SNew(SBorder)
+				.BorderImage(FMinesweeperStyle::GetBrush("RoundedPanel"))
+				.HAlign(HAlign_Fill).VAlign(VAlign_Center)
+				.Padding(10.0f)
+				[
+					SAssignNew(HighScoresList, SMinesweeperHighScores)
+					.HighScores(&Settings->HighScores)
+				]
+			]
+		];
+}
+
 TSharedRef<SVerticalBox> SMinesweeperWindow::ConstructGameSettingsPanel()
 {
 	return 
@@ -246,15 +245,18 @@ TSharedRef<SVerticalBox> SMinesweeperWindow::ConstructGameSettingsPanel()
 			SNew(SHorizontalBox)
 			+ SHorizontalBox::Slot().AutoWidth().Padding(0.0f, 0.0f, 10.0f, 0.0f)
 			[
-				SNew(SBox).WidthOverride(30)
-				.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
+				SNew(SBox)//.WidthOverride(30)
+				//.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
 				[
-					SNew(SButton).HAlign(HAlign_Fill)
+					SNew(SButton)
+					.ContentPadding(0)
 					.HAlign(HAlign_Center).VAlign(VAlign_Center)
 					.ToolTipText(LOCTEXT("SettingsButtonTooltip", "Open the Minesweeper editor settings window."))
 					.OnClicked(this, &SMinesweeperWindow::OnSettingsClick)
 					[
-						SNew(SImage).Image(FMinesweeperStyle::GetBrush("Settings")).DesiredSizeOverride(FVector2D(16.0f))
+						SNew(SImage)
+						.DesiredSizeOverride(FVector2D(12.0f))
+						.Image(FMinesweeperStyle::GetBrush("Settings"))
 					]
 				]
 			]
@@ -281,7 +283,7 @@ TSharedRef<SVerticalBox> SMinesweeperWindow::ConstructGameSettingsPanel()
 		[
 			SNew(SBox).WidthOverride(180)
 			.HAlign(HAlign_Fill).VAlign(VAlign_Fill)
-			.Visibility_Lambda([&]() { return GameWidget->IsGameActive() ? EVisibility::Visible : EVisibility::Collapsed; })
+			.Visibility_Lambda([&]() { return GameWidget.IsValid() && GameWidget->IsGameActive() ? EVisibility::Visible : EVisibility::Collapsed; })
 			[
 				SNew(SButton).HAlign(HAlign_Fill)
 				.HAlign(HAlign_Center).VAlign(VAlign_Center)
@@ -450,18 +452,6 @@ TSharedRef<SHorizontalBox> SMinesweeperWindow::ConstructDifficultyPresetButtonsR
 END_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 
-void SMinesweeperWindow::OnCellDrawSizeChanged(const FPropertyChangedEvent& InPropertyChangedEvent)
-{
-	if (!CellDrawResizeTimerHandle.IsValid())
-	{
-		GameWidget->SetCellDrawSize(Settings->CellDrawSize);
-	}
-
-	// disable resizing for one second to throttle sizing from settings
-	GEditor->GetTimerManager()->SetTimer(CellDrawResizeTimerHandle, [&]() { CellDrawResizeTimerHandle.Invalidate(); }, 0.0f, false, 1.0f);
-}
-
-
 FText SMinesweeperWindow::GetPlayerName() const
 {
 	return FText::FromString(Settings->LastPlayerName);
@@ -536,9 +526,9 @@ FSlateColor SMinesweeperWindow::GetDifficultyButtonColor(const int32 InDifficult
 
 	switch (InDifficultyLevel)
 	{
-	case 0: return Settings->LastDifficulty.IsBeginner() ? selectedColor : transparentColor;
-	case 1: return Settings->LastDifficulty.IsIntermediate() ? selectedColor : transparentColor;
-	case 2: return Settings->LastDifficulty.IsExpert() ? selectedColor : transparentColor;
+	case 0: return UMinesweeperStatics::IsBeginnerDifficulty(Settings->LastDifficulty) ? selectedColor : transparentColor;
+	case 1: return UMinesweeperStatics::IsIntermediateDifficulty(Settings->LastDifficulty) ? selectedColor : transparentColor;
+	case 2: return UMinesweeperStatics::IsExpertDifficulty(Settings->LastDifficulty) ? selectedColor : transparentColor;
 	}
 
 	return transparentColor;
@@ -549,9 +539,9 @@ FReply SMinesweeperWindow::OnDifficultyClick(const int32 InDifficultyLevel)
 {
 	switch (InDifficultyLevel)
 	{
-	case 0: Settings->LastDifficulty = FMinesweeperDifficulty::Beginner(); break;
-	case 1: Settings->LastDifficulty = FMinesweeperDifficulty::Intermediate(); break;
-	case 2: Settings->LastDifficulty = FMinesweeperDifficulty::Expert(); break;
+	case 0: Settings->LastDifficulty = UMinesweeperStatics::BeginnerDifficulty(); break;
+	case 1: Settings->LastDifficulty = UMinesweeperStatics::IntermediateDifficulty(); break;
+	case 2: Settings->LastDifficulty = UMinesweeperStatics::ExpertDifficulty(); break;
 	}
 	return FReply::Handled();
 }
@@ -634,7 +624,7 @@ int32 SMinesweeperWindow::OnGameOverCallback(const bool InWon, const float InTim
 {
 	LastHighScoreRank = -1;
 
-	if (InWon && GameWidget->GetGame()->GetDifficulty().IsExpert())
+	if (InWon && UMinesweeperStatics::IsExpertDifficulty(GameWidget->GetGame()->GetDifficulty()))
 	{
 		// calculate high score
 		// less time is higher score, less clicks is higher score

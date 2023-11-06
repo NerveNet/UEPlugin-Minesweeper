@@ -10,7 +10,7 @@
 #include "Widgets/Layout/SScaleBox.h"
 
 
-#define LOCTEXT_NAMESPACE "FMinesweeperEditorModule"
+#define LOCTEXT_NAMESPACE "Minesweeper"
 
 DEFINE_LOG_CATEGORY(LogMinesweeperEditor);
 
@@ -143,7 +143,8 @@ TSharedRef<SWindow> FMinesweeperEditorModule::CreateGenericWindowForGame()
 	{
 		MinesweeperGame = SNew(SMinesweeperWindow);
 	}
-	return SNew(SWindow)
+	return 
+		SNew(SWindow)
 		.Title(FMinesweeperEditorModule::GetMinesweeperLabel())
 		.CreateTitleBar(true)
 		.SaneWindowPlacement(true)
@@ -244,13 +245,14 @@ void FMinesweeperEditorModule::CloseMinesweeperWindow(const bool bInForceImmedia
 
 bool FMinesweeperEditorModule::IsMinesweeperDockTabOpen() const
 {
-	return FGlobalTabmanager::Get()->FindExistingLiveTab(FTabId(GetMinesweeperDockTabName())).IsValid();
+	return ParentDockTab.IsValid() || FGlobalTabmanager::Get()->FindExistingLiveTab(FTabId(GetMinesweeperDockTabName())).IsValid();
 }
 
 void FMinesweeperEditorModule::OpenMinesweeperDockTab()
 {
 	if (IsMinesweeperWindowVisible()) return;
-	FGlobalTabmanager::Get()->TryInvokeTab(FTabId(GetMinesweeperDockTabName()));
+
+	ParentDockTab = FGlobalTabmanager::Get()->TryInvokeTab(FTabId(GetMinesweeperDockTabName()));
 }
 
 void FMinesweeperEditorModule::CloseMinesweeperDockTab()
@@ -266,10 +268,10 @@ void FMinesweeperEditorModule::ToggleMinesweeperWindowMode()
 	if (IsMinesweeperWindowVisible())
 	{
 		// create new dock tab and close standalone window
-		TSharedPtr<SDockTab> dockTab = FGlobalTabmanager::Get()->TryInvokeTab(FTabId(GetMinesweeperDockTabName()));
-		if (dockTab.IsValid())
+		ParentDockTab = FGlobalTabmanager::Get()->TryInvokeTab(FTabId(GetMinesweeperDockTabName()));
+		if (ParentDockTab.IsValid())
 		{
-			MinesweeperGame->AssignParentWidget(dockTab);
+			MinesweeperGame->AssignParentWidget(ParentDockTab);
 			CloseMinesweeperWindow();
 		}
 

@@ -3,7 +3,7 @@
 #include "MinesweeperRuntimeModule.h"
 
 
-#define LOCTEXT_NAMESPACE "FMinesweeperRuntimeModule"
+#define LOCTEXT_NAMESPACE "Minesweeper"
 
 DEFINE_LOG_CATEGORY(LogMinesweeperRuntime);
 
